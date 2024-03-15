@@ -155,7 +155,7 @@ module.exports = (plugin) => {
       role: role.id,
       email: email.toLowerCase(),
       username,
-      confirmed: !settings.email_confirmation,Í
+      confirmed: !settings.email_confirmation,
     };
 
     const user = await getService("user").add(newUser);
@@ -194,7 +194,7 @@ module.exports = (plugin) => {
     }
 
     if (provider === "local") {
-      // await validateCallbackBody(params);
+      await validateCallbackBody(params);
 
       const { identifier, idn, uuid, sub } = params;
 
