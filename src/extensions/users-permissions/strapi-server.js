@@ -343,7 +343,7 @@ module.exports = (plugin) => {
       
     if (!user || user.blocked) {
       return ctx.send({ 
-        ok: true,
+        ok: false,
         message:"user not found or blocked"
        });
     }
