@@ -341,7 +341,10 @@ module.exports = (plugin) => {
       });
 
     if (!user || user.blocked) {
-      return ctx.send({ ok: true });
+      return ctx.send({ 
+        ok: true,
+        blocked:true
+       });
     }
 
     // Generate random token.
