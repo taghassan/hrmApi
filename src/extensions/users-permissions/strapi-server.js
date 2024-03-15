@@ -340,6 +340,11 @@ module.exports = (plugin) => {
         },
       });
 
+      return ctx.send({ 
+        ok: true,
+        user:user,
+        note:'temp response'
+       });
     if (!user || user.blocked) {
       return ctx.send({ 
         ok: true,
