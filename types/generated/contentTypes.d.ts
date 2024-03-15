@@ -368,6 +368,7 @@ export interface ApiDepartmentDepartment extends Schema.CollectionType {
     singularName: 'department';
     pluralName: 'departments';
     displayName: 'Department';
+    description: '';
   };
   options: {
     draftAndPublish: true;
@@ -379,6 +380,11 @@ export interface ApiDepartmentDepartment extends Schema.CollectionType {
       'api::department.department',
       'oneToMany',
       'plugin::users-permissions.user'
+    >;
+    departments: Attribute.Relation<
+      'api::department.department',
+      'oneToMany',
+      'api::department.department'
     >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;

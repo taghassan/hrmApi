@@ -139,12 +139,14 @@ module.exports = (plugin) => {
     }
 
     if (settings.unique_email) {
-      const conflictingUserCount = await strapi.query('plugin::users-permissions.user').count({
-        where: { ...identifierFilter },
-      });
+      const conflictingUserCount = await strapi
+        .query("plugin::users-permissions.user")
+        .count({
+          where: { ...identifierFilter },
+        });
 
       if (conflictingUserCount > 0) {
-        throw new ApplicationError('Email or Username are already taken');
+        throw new ApplicationError("Email or Username are already taken");
       }
     }
 
@@ -153,23 +155,23 @@ module.exports = (plugin) => {
       role: role.id,
       email: email.toLowerCase(),
       username,
-      confirmed: !settings.email_confirmation,
+      confirmed: !settings.email_confirmation,Í
     };
 
-    const user = await getService('user').add(newUser);
+    const user = await getService("user").add(newUser);
 
     const sanitizedUser = await sanitizeUser(user, ctx);
 
     if (settings.email_confirmation) {
       try {
-        await getService('user').sendConfirmationEmail(sanitizedUser);
+        await getService("user").sendConfirmationEmail(sanitizedUser);
       } catch (err) {
         throw new ApplicationError(err.message);
       }
 
       return ctx.send({ user: sanitizedUser });
     }
-    const jwt = getService('jwt').issue(_.pick(user, ['id']));
+    const jwt = getService("jwt").issue(_.pick(user, ["id"]));
 
     return ctx.send({
       jwt,
