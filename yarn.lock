@@ -8766,6 +8766,11 @@ statuses@2.0.1, statuses@^2.0.1:
   resolved "https://registry.yarnpkg.com/statuses/-/statuses-1.5.0.tgz#161c7dac177659fd9811f43771fa99381478628c"
   integrity sha512-OpZ3zP+jT1PI7I8nemJX4AKmAX070ZkYPVWV/AaKTJl+tXCTGyVdC1a4SL8RUQYEwk/f34ZX8UTykN68FwrqAA==
 
+strapi-plugin-untransform-response@^0.1.7:
+  version "0.1.7"
+  resolved "https://registry.yarnpkg.com/strapi-plugin-untransform-response/-/strapi-plugin-untransform-response-0.1.7.tgz#bd08b8b0114fe5a8dd822df5cc599cf3e3ab575c"
+  integrity sha512-GIedM1gTdsv7Efh3k/q7tfnpsiaLGiwPt53Cqu0X1QYYh928Dnj64fkZdzu1Bxf772A5SNSDn5JT0evWV1Iyxg==
+
 stream-chain@2.2.5, stream-chain@^2.2.5:
   version "2.2.5"
   resolved "https://registry.yarnpkg.com/stream-chain/-/stream-chain-2.2.5.tgz#b30967e8f14ee033c5b9a19bbe8a2cba90ba0d09"
