@@ -364,7 +364,7 @@ module.exports = (plugin) => {
     ctx.send({
       ok: true,
       resetPasswordToken: resetPasswordToken,
-      note: "remove this later",
+      message: "OTP sent to your phone number",
     });
   };
 
