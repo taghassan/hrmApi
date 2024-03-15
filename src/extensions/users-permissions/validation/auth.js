@@ -23,7 +23,7 @@ const validateEmailConfirmationSchema = yup.object({
 
 const forgotPasswordSchema = yup
   .object({
-    email: yup.string().email().required(),
+    identifier: yup.string().required(),
   })
   .noUnknown();
 

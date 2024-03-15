@@ -274,12 +274,156 @@ module.exports = (plugin) => {
       }
 
       return ctx.send({
+        ok: true,
         jwt: getService("jwt").issue({ id: user.id }),
         user: await sanitizeUser(user, ctx),
       });
     } catch (error) {
       throw new ApplicationError(error.message);
     }
+  };
+
+  plugin.controllers.auth.changePassword = async (ctx) => {
+    if (!ctx.state.user) {
+      throw new ApplicationError(
+        "You must be authenticated to reset your password"
+      );
+    }
+
+    const { currentPassword, password } = await validateChangePasswordBody(
+      ctx.request.body
+    );
+
+    const user = await strapi.entityService.findOne(
+      "plugin::users-permissions.user",
+      ctx.state.user.id
+    );
+
+    const validPassword = await getService("user").validatePassword(
+      currentPassword,
+      user.password
+    );
+
+    if (!validPassword) {
+      throw new ValidationError("The provided current password is invalid");
+    }
+
+    if (currentPassword === password) {
+      throw new ValidationError(
+        "Your new password must be different than your current password"
+      );
+    }
+
+    await getService("user").edit(user.id, { password });
+
+    ctx.send({
+      ok: true,
+      jwt: getService("jwt").issue({ id: user.id }),
+      user: await sanitizeUser(user, ctx),
+    });
+  };
+
+  plugin.controllers.auth.forgotPassword = async (ctx) => {
+    const { identifier } = await validateForgotPasswordBody(ctx.request.body);
+
+    // Find the user by identifier.
+    const user = await strapi
+      .query("plugin::users-permissions.user")
+      .findOne({
+        where: {
+          $or: [
+            { email: identifier.toLowerCase() },
+            { username: identifier },
+            { EmployeeNumber: identifier },
+            { Phone: identifier },
+          ],
+        },
+      });
+
+    if (!user || user.blocked) {
+      return ctx.send({ ok: true });
+    }
+
+    // Generate random token.
+    const userInfo = await sanitizeUser(user, ctx);
+
+    // const resetPasswordToken = crypto.randomBytes(64).toString('hex');
+    const resetPasswordToken = Math.floor(100000 + Math.random() * 900000);
+
+    // NOTE: Update the user before sending the email so an Admin can generate the link if the email fails
+    await getService("user").edit(user.id, {
+      resetPasswordToken: `${resetPasswordToken}`,
+    });
+
+    //TODO Send Code in sms
+
+    ctx.send({
+      ok: true,
+      resetPasswordToken: resetPasswordToken,
+      note: "remove this later",
+    });
+  };
+
+  plugin.controllers.auth.resetPassword = async (ctx) => {
+    const { password, passwordConfirmation, code } =
+      await validateResetPasswordBody(ctx.request.body);
+
+    if (password !== passwordConfirmation) {
+      throw new ValidationError("Passwords do not match");
+    }
+
+    const user = await strapi
+      .query("plugin::users-permissions.user")
+      .findOne({ where: { resetPasswordToken: code } });
+
+    if (!user) {
+      throw new ValidationError("Incorrect code provided");
+    }
+
+    await getService("user").edit(user.id, {
+      resetPasswordToken: null,
+      password,
+    });
+
+    // Update the user.
+    ctx.send({
+      ok: true,
+      jwt: getService("jwt").issue({ id: user.id }),
+      user: await sanitizeUser(user, ctx),
+    });
+  };
+
+  plugin.controllers.auth.validateCode = async (ctx) => {
+    const { code ,identifier } = ctx.request.body;
+
+    if (!code) {
+      throw new ValidationError("Incorrect code provided");
+    }
+
+    if (!identifier) {
+      throw new ValidationError("Incorrect identifier provided");
+    }
+
+    const user = await strapi
+      .query("plugin::users-permissions.user")
+      .findOne({ where: { resetPasswordToken: code ,
+        $or: [
+          { email: identifier.toLowerCase() },
+          { username: identifier },
+          { EmployeeNumber: identifier },
+          { Phone: identifier },
+        ],
+       } });
+
+    if (!user) {
+      throw new ValidationError("Incorrect user code provided");
+    }
+
+    ctx.send({
+      ok: true,
+      user: user,
+      note: "remove this later",
+    });
   };
 
   plugin.routes["content-api"].routes.unshift({
@@ -296,8 +440,52 @@ module.exports = (plugin) => {
   plugin.routes["content-api"].routes.unshift({
     // Adding route
     method: "POST",
-    path: "/auth/local/register", // Register route
+    path: "/auth/local/register",
     handler: "auth.register",
+    config: {
+      middlewares: ["plugin::users-permissions.rateLimit"],
+      prefix: "",
+    },
+  });
+
+  plugin.routes["content-api"].routes.unshift({
+    // Adding route
+    method: "POST",
+    path: "/auth/local/forgotPassword",
+    handler: "auth.forgotPassword",
+    config: {
+      middlewares: ["plugin::users-permissions.rateLimit"],
+      prefix: "",
+    },
+  });
+
+  plugin.routes["content-api"].routes.unshift({
+    // Adding route
+    method: "POST",
+    path: "/auth/local/validateCode",
+    handler: "auth.validateCode",
+    config: {
+      middlewares: ["plugin::users-permissions.rateLimit"],
+      prefix: "",
+    },
+  });
+
+  plugin.routes["content-api"].routes.unshift({
+    // Adding route
+    method: "POST",
+    path: "/auth/local/resetPassword",
+    handler: "auth.resetPassword",
+    config: {
+      middlewares: ["plugin::users-permissions.rateLimit"],
+      prefix: "",
+    },
+  });
+
+  plugin.routes["content-api"].routes.unshift({
+    // Adding route
+    method: "POST",
+    path: "/auth/local/changePassword",
+    handler: "auth.changePassword",
     config: {
       middlewares: ["plugin::users-permissions.rateLimit"],
       prefix: "",
