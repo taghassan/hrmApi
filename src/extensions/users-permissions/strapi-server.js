@@ -260,6 +260,7 @@ module.exports = (plugin) => {
       return ctx.send({
         jwt: getService("jwt").issue({ id: user.id }),
         user: await sanitizeUser(user, ctx),
+        message: "login successfully",
       });
     }
 
@@ -320,6 +321,7 @@ module.exports = (plugin) => {
       ok: true,
       jwt: getService("jwt").issue({ id: user.id }),
       user: await sanitizeUser(user, ctx),
+      message: "Password changed successfully",
     });
   };
 
@@ -327,25 +329,22 @@ module.exports = (plugin) => {
     const { identifier } = await validateForgotPasswordBody(ctx.request.body);
 
     // Find the user by identifier.
-    const user = await strapi
-      .query("plugin::users-permissions.user")
-      .findOne({
-        where: {
-          $or: [
-            { email: identifier.toLowerCase() },
-            { username: identifier },
-            { EmployeeNumber: identifier },
-            { Phone: identifier },
-          ],
-        },
-      });
+    const user = await strapi.query("plugin::users-permissions.user").findOne({
+      where: {
+        $or: [
+          { email: identifier.toLowerCase() },
+          { username: identifier },
+          { EmployeeNumber: identifier },
+          { Phone: identifier },
+        ],
+      },
+    });
 
-      
     if (!user || user.blocked) {
-      return ctx.send({ 
+      return ctx.send({
         ok: false,
-        message:"user not found or blocked"
-       });
+        message: "user not found or blocked",
+      });
     }
 
     // Generate random token.
@@ -369,7 +368,7 @@ module.exports = (plugin) => {
   };
 
   plugin.controllers.auth.resetPassword = async (ctx) => {
-    const { password, passwordConfirmation, code } =
+    const { password, passwordConfirmation, code, identifier } =
       await validateResetPasswordBody(ctx.request.body);
 
     if (password !== passwordConfirmation) {
@@ -378,10 +377,20 @@ module.exports = (plugin) => {
 
     const user = await strapi
       .query("plugin::users-permissions.user")
-      .findOne({ where: { resetPasswordToken: code } });
+      .findOne({
+        where: {
+          resetPasswordToken: code,
+          $or: [
+            { email: identifier.toLowerCase() },
+            { username: identifier },
+            { EmployeeNumber: identifier },
+            { Phone: identifier },
+          ],
+        },
+      });
 
     if (!user) {
-      throw new ValidationError("Incorrect code provided");
+      throw new ValidationError("Incorrect code or identifier provided");
     }
 
     await getService("user").edit(user.id, {
@@ -394,11 +403,12 @@ module.exports = (plugin) => {
       ok: true,
       jwt: getService("jwt").issue({ id: user.id }),
       user: await sanitizeUser(user, ctx),
+      message: "Password reseted successfully",
     });
   };
 
   plugin.controllers.auth.validateCode = async (ctx) => {
-    const { code ,identifier } = ctx.request.body;
+    const { code, identifier } = ctx.request.body;
 
     if (!code) {
       throw new ValidationError("Incorrect code provided");
@@ -410,14 +420,17 @@ module.exports = (plugin) => {
 
     const user = await strapi
       .query("plugin::users-permissions.user")
-      .findOne({ where: { resetPasswordToken: code ,
-        $or: [
-          { email: identifier.toLowerCase() },
-          { username: identifier },
-          { EmployeeNumber: identifier },
-          { Phone: identifier },
-        ],
-       } });
+      .findOne({
+        where: {
+          resetPasswordToken: code,
+          $or: [
+            { email: identifier.toLowerCase() },
+            { username: identifier },
+            { EmployeeNumber: identifier },
+            { Phone: identifier },
+          ],
+        },
+      });
 
     if (!user) {
       throw new ValidationError("Incorrect user code provided");
@@ -425,8 +438,7 @@ module.exports = (plugin) => {
 
     ctx.send({
       ok: true,
-      user: user,
-      note: "remove this later",
+      message: "OTP is validate",
     });
   };
 

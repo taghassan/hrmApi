@@ -29,6 +29,7 @@ const forgotPasswordSchema = yup
 
 const resetPasswordSchema = yup
   .object({
+    identifier: yup.string().required(),
     password: yup.string().required(),
     passwordConfirmation: yup.string().required(),
     code: yup.string().required(),
