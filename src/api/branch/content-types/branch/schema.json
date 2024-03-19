@@ -15,14 +15,16 @@
     "name": {
       "type": "string"
     },
-    "location": {
-      "type": "customField",
-      "customField": "plugin::google-maps.location-picker"
-    },
     "checkin_range_radius": {
       "type": "decimal",
       "default": 1,
       "required": true
+    },
+    "latitude": {
+      "type": "string"
+    },
+    "longitude": {
+      "type": "string"
     }
   }
 }

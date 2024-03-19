@@ -376,9 +376,6 @@ export interface ApiAttendanceAttendance extends Schema.CollectionType {
   attributes: {
     date: Attribute.Date;
     time: Attribute.Time;
-    location: Attribute.JSON &
-      Attribute.Required &
-      Attribute.CustomField<'plugin::google-maps.location-picker'>;
     type: Attribute.Enumeration<['checkOut', 'checkIn']> &
       Attribute.Required &
       Attribute.DefaultTo<'checkIn'>;
@@ -387,6 +384,8 @@ export interface ApiAttendanceAttendance extends Schema.CollectionType {
       'manyToOne',
       'plugin::users-permissions.user'
     >;
+    latitude: Attribute.String;
+    longitude: Attribute.String;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -418,11 +417,11 @@ export interface ApiBranchBranch extends Schema.CollectionType {
   };
   attributes: {
     name: Attribute.String;
-    location: Attribute.JSON &
-      Attribute.CustomField<'plugin::google-maps.location-picker'>;
     checkin_range_radius: Attribute.Decimal &
       Attribute.Required &
       Attribute.DefaultTo<1>;
+    latitude: Attribute.String;
+    longitude: Attribute.String;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -747,46 +746,6 @@ export interface PluginContentReleasesReleaseAction
   };
 }
 
-export interface PluginGoogleMapsConfig extends Schema.SingleType {
-  collectionName: 'google_maps_configs';
-  info: {
-    singularName: 'config';
-    pluralName: 'configs';
-    displayName: 'Google Maps Config';
-  };
-  options: {
-    populateCreatorFields: false;
-    draftAndPublish: false;
-  };
-  pluginOptions: {
-    'content-manager': {
-      visible: false;
-    };
-    'content-type-builder': {
-      visible: false;
-    };
-  };
-  attributes: {
-    googleMapsKey: Attribute.String &
-      Attribute.Required &
-      Attribute.DefaultTo<''>;
-    createdAt: Attribute.DateTime;
-    updatedAt: Attribute.DateTime;
-    createdBy: Attribute.Relation<
-      'plugin::google-maps.config',
-      'oneToOne',
-      'admin::user'
-    > &
-      Attribute.Private;
-    updatedBy: Attribute.Relation<
-      'plugin::google-maps.config',
-      'oneToOne',
-      'admin::user'
-    > &
-      Attribute.Private;
-  };
-}
-
 export interface PluginI18NLocale extends Schema.CollectionType {
   collectionName: 'i18n_locale';
   info: {
@@ -1031,7 +990,6 @@ declare module '@strapi/types' {
       'plugin::upload.folder': PluginUploadFolder;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
-      'plugin::google-maps.config': PluginGoogleMapsConfig;
       'plugin::i18n.locale': PluginI18NLocale;
       'plugin::users-permissions.permission': PluginUsersPermissionsPermission;
       'plugin::users-permissions.role': PluginUsersPermissionsRole;

@@ -18,11 +18,6 @@
     "time": {
       "type": "time"
     },
-    "location": {
-      "type": "customField",
-      "customField": "plugin::google-maps.location-picker",
-      "required": true
-    },
     "type": {
       "type": "enumeration",
       "enum": [
@@ -37,6 +32,12 @@
       "relation": "manyToOne",
       "target": "plugin::users-permissions.user",
       "inversedBy": "attendances"
+    },
+    "latitude": {
+      "type": "string"
+    },
+    "longitude": {
+      "type": "string"
     }
   }
 }

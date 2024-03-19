@@ -62,12 +62,8 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
             "date": actionDate ?? currentTime,
             "time": time ?? currentTime,
             "user": user.id,
-            "location": {
-              "coordinates": {
-                "lat": parseFloat(current_lat ?? '0.0'),
-                "lng": parseFloat(current_lang ?? '0.0')
-              }
-            }
+            "latitude":current_lat ?? '0.0',
+            "longitude":current_lang ?? '0.0'
           }
         }
       );
@@ -96,12 +92,8 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
             "date": actionDate ?? currentTime,
             "time": time ?? currentTime,
             "user": user.id,
-            "location": {
-              "coordinates": {
-                "lat": parseFloat(current_lat ?? '0.0'),
-                "lng": parseFloat(current_lang ?? '0.0')
-              }
-            }
+            "latitude":current_lat ?? '0.0',
+            "longitude":current_lang ?? '0.0'
           }
         }
       );
@@ -226,8 +218,8 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
 
     ctx.send({
       id: branch.id,
-      latitude: branch.location ? branch.location.coordinates.lat : 0.0,
-      longitude: branch.location ? branch.location.coordinates.lng : 0.0,
+      latitude: branch.latitude ?? '0.0',
+      longitude: branch.longitude ?? '0.0',
       checkin_range_radius: branch.checkin_range_radius,
       name: branch.name,
     })
@@ -249,8 +241,8 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
 
     ctx.send({
       id: branch.id,
-      latitude: branch.location ? branch.location.coordinates.lat : 0.0,
-      longitude: branch.location ? branch.location.coordinates.lng : 0.0,
+      latitude: branch.latitude?? '0.0',
+      longitude: branch.longitude ?? '0.0',
       checkin_range_radius: branch.checkin_range_radius,
       name: branch.name,
     })
