@@ -259,6 +259,7 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
       NameAr:user.NameAr,
       email:user.email,
       branch_id:branch?branch.id??0:null,
+
       image:userWithBranch.Photo?userWithBranch.Photo.url :'',
 
     })
