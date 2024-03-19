@@ -192,8 +192,8 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
       sort: {id: 'desc'},
       limit: 1,
     });
-    const lastCheckinDatetime = '' + lastCheckin[0].date + ' ' + lastCheckin[0].time
-    const lastCheckOutDatetime = '' + lastCheckOut[0].date + ' ' + lastCheckOut[0].time
+    const lastCheckinDatetime =lastCheckin[0]? '' + lastCheckin[0].date + ' ' + lastCheckin[0].time :''
+    const lastCheckOutDatetime =lastCheckOut[0]? '' + lastCheckOut[0].date + ' ' + lastCheckOut[0].time :''
 
 
     ctx.send(
