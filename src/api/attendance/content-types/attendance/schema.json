@@ -1,0 +1,42 @@
+{
+  "kind": "collectionType",
+  "collectionName": "attendances",
+  "info": {
+    "singularName": "attendance",
+    "pluralName": "attendances",
+    "displayName": "Attendance",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "date": {
+      "type": "date"
+    },
+    "time": {
+      "type": "time"
+    },
+    "location": {
+      "type": "customField",
+      "customField": "plugin::google-maps.location-picker",
+      "required": true
+    },
+    "type": {
+      "type": "enumeration",
+      "enum": [
+        "checkOut",
+        "checkIn"
+      ],
+      "default": "checkIn",
+      "required": true
+    },
+    "user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "attendances"
+    }
+  }
+}
