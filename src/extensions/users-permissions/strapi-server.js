@@ -274,9 +274,11 @@ module.exports = (plugin) => {
         if(user && withShift ==='true'){
 
         user = mapUserWithSift(user)
-
-          ctx.send(user)
-          return
+          return ctx.send({
+            jwt: getService("jwt").issue({ id: user.id }),
+            user: await sanitizeUser(user, ctx),
+            message: "login successfully",
+          });
         }else{
         // delete user.shift;
       }
