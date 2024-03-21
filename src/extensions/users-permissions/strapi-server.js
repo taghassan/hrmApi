@@ -226,8 +226,6 @@ module.exports = (plugin) => {
           },
         });
 
-      ctx.send(user)
-      return 
 
       if (!user) {
         throw new ValidationError("Invalid identifier or password");
@@ -277,7 +275,9 @@ module.exports = (plugin) => {
 
         user = mapUserWithSift(user)
 
-      }else{
+          ctx.send(user)
+          return
+        }else{
         // delete user.shift;
       }
 
