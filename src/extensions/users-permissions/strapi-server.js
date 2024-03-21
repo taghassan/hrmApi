@@ -29,6 +29,7 @@ const {
 } = require("./validation/auth");
 
 const { getService } = require("./utils");
+const {mapUserWithSift} = require("../../api/app_utils");
 
 const sanitizeUser = (user, ctx) => {
   // Sanitizing user
@@ -183,6 +184,7 @@ module.exports = (plugin) => {
   plugin.controllers.auth.callback = async (ctx) => {
     const provider = ctx.params.provider || "local";
     const params = ctx.request.body;
+    const {withShift} = ctx.request.query;
 
     const store = strapi.store({ type: "plugin", name: "users-permissions" });
     const grantSettings = await store.get({ key: "grant" });
@@ -199,7 +201,7 @@ module.exports = (plugin) => {
       const { identifier, idn, uuid, sub } = params;
 
       // Check if the user exists.
-      const user = await strapi
+      let user = await strapi
         .query("plugin::users-permissions.user")
         .findOne({
           where: {
@@ -210,6 +212,22 @@ module.exports = (plugin) => {
               { EmployeeNumber: identifier },
               { Phone: identifier },
             ],
+          },
+          populate: {
+            shift: {
+              populate: {
+                days: {
+                  populate: {
+                    day: {
+                      // where:{
+                      //   day:humanReadableDay
+                      // }
+                    },
+
+                  }
+                }
+              }
+            }
           },
         });
 
@@ -255,6 +273,14 @@ module.exports = (plugin) => {
         throw new ApplicationError(
           "Your account has been blocked by an administrator"
         );
+      }
+
+        if(user && withShift ==='true'){
+
+        user = mapUserWithSift(user)
+
+      }else{
+        delete user.shift;
       }
 
       return ctx.send({

@@ -3,6 +3,7 @@
 const url = require('url');
 const {validateCheckINOutBody} = require("./Validation");
 const utils = require("@strapi/utils");
+const {mapUserWithSift, mapShiftDays} = require("../../app_utils");
 const {ApplicationError, ValidationError, ForbiddenError} = utils.errors;
 
 /**
@@ -34,6 +35,34 @@ async function getUserBranch(user) {
     },
     populate: true,
   });
+}
+
+async function getUserShift(user) {
+
+  return await strapi.db.query('plugin::users-permissions.user').findOne({
+    where: {
+      $or: [
+        {id: user.id},
+      ],
+    },
+    populate: {
+      shift: {
+        populate: {
+          days: {
+            populate: {
+              day: {
+                // where:{
+                //   day:humanReadableDay
+                // }
+              },
+
+            }
+          }
+        }
+      }
+    },
+  })
+
 }
 
 async function getBranch(branch_id) {
@@ -249,9 +278,19 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
 
   },
   async getUserDetails(ctx) {
+
+    const {withShift} = ctx.request.query;
+
     const user = ctx.state.user;
     const userWithBranch = await getUserBranch(user)
     const branch = userWithBranch.branch
+
+    let shift = null
+    if (withShift === 'true') {
+      const userWithShift = await getUserShift(user)
+      const mapUserWithShift = mapUserWithSift(userWithShift)
+      shift = mapUserWithShift.shift
+    }
 
     ctx.send({
       name: user.NameAr,
@@ -261,7 +300,7 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
       branch_id: branch ? branch.id ?? 0 : null,
 
       image: userWithBranch.Photo ? userWithBranch.Photo.url : '',
-
+      shift: shift ?? null
     })
 
   },
@@ -269,7 +308,7 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
   async shifts(ctx) {
 
     const today = new Date();
-    const options = { weekday: 'long' };
+    const options = {weekday: 'long'};
     const humanReadableDay = today.toLocaleDateString('en-US', options);
 
     const entries = await strapi
@@ -291,32 +330,40 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
 
     const dayToDay = await strapi
       .query("api::day.day").findOne({
-        where:{
-          day:humanReadableDay
+        where: {
+          day: humanReadableDay
         }
       })
 
     entries.map(entry => {
-      if (entry.days) {
-        const daysMap = []
-        entry.days.map(day => {
-          const dayCast = {
-            id: day.id,
-            isWorkingDay: day.isWorkingDay,
-            start_at: day.start_at,
-            end_at: day.end_at,
-            day: day.day ? day.day.day : '',
-            dayId: day.day ? day.day.id : '',
-
-          }
-          if(day.day )
-          daysMap.push(dayCast)
-        })
-        entry.days=daysMap
-      }
+      entry = mapShiftDays(entry)
     })
 
-    ctx.send(entries)
+    ctx.send(
+      {
+        ok: true,
+        entries: entries,
+        message: 'executed successfully !'
+      }
+    )
+  },
+
+  async getUserShift(ctx) {
+    const user = ctx.state.user;
+
+    const userWithSift = await getUserShift(user)
+
+    const mappedUserWithSift = mapUserWithSift(userWithSift)
+
+    delete mappedUserWithSift.password;
+    delete mappedUserWithSift.resetPasswordToken;
+    delete mappedUserWithSift.confirmationToken;
+
+    ctx.send({
+      ok: true,
+      data: mappedUserWithSift,
+      message: 'executed successfully !'
+    })
   }
 
 }));
