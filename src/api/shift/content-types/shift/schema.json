@@ -4,7 +4,8 @@
   "info": {
     "singularName": "shift",
     "pluralName": "shifts",
-    "displayName": "Shift"
+    "displayName": "Shift",
+    "description": ""
   },
   "options": {
     "draftAndPublish": true
@@ -23,6 +24,11 @@
       "relation": "oneToMany",
       "target": "plugin::users-permissions.user",
       "mappedBy": "shift"
+    },
+    "days": {
+      "type": "component",
+      "repeatable": true,
+      "component": "days.days"
     }
   }
 }

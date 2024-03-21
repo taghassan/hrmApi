@@ -62,8 +62,8 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
             "date": actionDate ?? currentTime,
             "time": time ?? currentTime,
             "user": user.id,
-            "latitude":current_lat ?? '0.0',
-            "longitude":current_lang ?? '0.0'
+            "latitude": current_lat ?? '0.0',
+            "longitude": current_lang ?? '0.0'
           }
         }
       );
@@ -92,8 +92,8 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
             "date": actionDate ?? currentTime,
             "time": time ?? currentTime,
             "user": user.id,
-            "latitude":current_lat ?? '0.0',
-            "longitude":current_lang ?? '0.0'
+            "latitude": current_lat ?? '0.0',
+            "longitude": current_lang ?? '0.0'
           }
         }
       );
@@ -192,8 +192,8 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
       sort: {id: 'desc'},
       limit: 1,
     });
-    const lastCheckinDatetime =lastCheckin[0]? '' + lastCheckin[0].date + ' ' + lastCheckin[0].time :''
-    const lastCheckOutDatetime =lastCheckOut[0]? '' + lastCheckOut[0].date + ' ' + lastCheckOut[0].time :''
+    const lastCheckinDatetime = lastCheckin[0] ? '' + lastCheckin[0].date + ' ' + lastCheckin[0].time : ''
+    const lastCheckOutDatetime = lastCheckOut[0] ? '' + lastCheckOut[0].date + ' ' + lastCheckOut[0].time : ''
 
 
     ctx.send(
@@ -241,7 +241,7 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
 
     ctx.send({
       id: branch.id,
-      latitude: branch.latitude?? '0.0',
+      latitude: branch.latitude ?? '0.0',
       longitude: branch.longitude ?? '0.0',
       checkin_range_radius: branch.checkin_range_radius,
       name: branch.name,
@@ -254,16 +254,69 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
     const branch = userWithBranch.branch
 
     ctx.send({
-      name:user.NameAr,
-      NameEn:user.NameEn,
-      NameAr:user.NameAr,
-      email:user.email,
-      branch_id:branch?branch.id??0:null,
+      name: user.NameAr,
+      NameEn: user.NameEn,
+      NameAr: user.NameAr,
+      email: user.email,
+      branch_id: branch ? branch.id ?? 0 : null,
 
-      image:userWithBranch.Photo?userWithBranch.Photo.url :'',
+      image: userWithBranch.Photo ? userWithBranch.Photo.url : '',
 
     })
 
+  },
+
+  async shifts(ctx) {
+
+    const today = new Date();
+    const options = { weekday: 'long' };
+    const humanReadableDay = today.toLocaleDateString('en-US', options);
+
+    const entries = await strapi
+      .query("api::shift.shift").findMany({
+        populate: {
+          days: {
+            populate: {
+              day: {
+                // where:{
+                //   day:humanReadableDay
+                // }
+              },
+              // fields: ['id','day','code'],
+            }
+          }
+        },
+      })
+
+
+    const dayToDay = await strapi
+      .query("api::day.day").findOne({
+        where:{
+          day:humanReadableDay
+        }
+      })
+
+    entries.map(entry => {
+      if (entry.days) {
+        const daysMap = []
+        entry.days.map(day => {
+          const dayCast = {
+            id: day.id,
+            isWorkingDay: day.isWorkingDay,
+            start_at: day.start_at,
+            end_at: day.end_at,
+            day: day.day ? day.day.day : '',
+            dayId: day.day ? day.day.id : '',
+
+          }
+          if(day.day )
+          daysMap.push(dayCast)
+        })
+        entry.days=daysMap
+      }
+    })
+
+    ctx.send(entries)
   }
 
 }));

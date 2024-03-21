@@ -1,0 +1,21 @@
+{
+  "kind": "collectionType",
+  "collectionName": "days",
+  "info": {
+    "singularName": "day",
+    "pluralName": "days",
+    "displayName": "Day"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "day": {
+      "type": "string"
+    },
+    "code": {
+      "type": "string"
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "collectionName": "components_days_days",
+  "info": {
+    "displayName": "days",
+    "icon": "layout",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "isWorkingDay": {
+      "type": "boolean",
+      "default": true
+    },
+    "start_at": {
+      "type": "time",
+      "default": "07:30"
+    },
+    "end_at": {
+      "type": "time",
+      "default": "03:30"
+    },
+    "day": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::day.day"
+    }
+  }
+}
