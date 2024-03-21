@@ -3,20 +3,20 @@
 
 const crypto = require("crypto");
 
-const { concat, compact, isArray } = require("lodash/fp");
+const {concat, compact, isArray} = require("lodash/fp");
 
 const {
-  contentTypes: { getNonWritableAttributes },
+  contentTypes: {getNonWritableAttributes},
 } = require("@strapi/utils");
 
 const _ = require("lodash");
 const jwt = require("jsonwebtoken");
 const utils = require("@strapi/utils");
 
-const { UserSchema } = require("../../Validation/index"); // Importing UserSchema
+const {UserSchema} = require("../../Validation/index"); // Importing UserSchema
 
-const { getAbsoluteAdminUrl, getAbsoluteServerUrl, sanitize } = utils;
-const { ApplicationError, ValidationError, ForbiddenError } = utils.errors;
+const {getAbsoluteAdminUrl, getAbsoluteServerUrl, sanitize} = utils;
+const {ApplicationError, ValidationError, ForbiddenError} = utils.errors;
 
 const {
   validateCallbackBody,
@@ -28,14 +28,14 @@ const {
   validateChangePasswordBody,
 } = require("./validation/auth");
 
-const { getService } = require("./utils");
+const {getService} = require("./utils");
 const {mapUserWithSift} = require("../../api/app_utils");
 
 const sanitizeUser = (user, ctx) => {
   // Sanitizing user
-  const { auth } = ctx.state;
+  const {auth} = ctx.state;
   const userSchema = strapi.getModel("plugin::users-permissions.user");
-  return sanitize.contentAPI.output(user, userSchema, { auth });
+  return sanitize.contentAPI.output(user, userSchema, {auth});
 };
 module.exports = (plugin) => {
   // JWT issuer
@@ -56,16 +56,16 @@ module.exports = (plugin) => {
       name: "users-permissions",
     });
 
-    const settings = await pluginStore.get({ key: "advanced" });
+    const settings = await pluginStore.get({key: "advanced"});
 
     if (!settings.allow_register) {
       throw new ApplicationError("Register action is currently disabled");
     }
 
-    const { register } = strapi.config.get("plugin.users-permissions");
+    const {register} = strapi.config.get("plugin.users-permissions");
     const alwaysAllowedKeys = ["username", "password", "email"];
     const userModel = strapi.contentTypes["plugin::users-permissions.user"];
-    const { attributes } = userModel;
+    const {attributes} = userModel;
 
     const nonWritable = getNonWritableAttributes(userModel);
 
@@ -74,32 +74,32 @@ module.exports = (plugin) => {
         alwaysAllowedKeys,
         isArray(register?.allowedFields)
           ? // Note that we do not filter allowedFields in case a user explicitly chooses to allow a private or otherwise omitted field on registration
-            register.allowedFields // if null or undefined, compact will remove it
+          register.allowedFields // if null or undefined, compact will remove it
           : // to prevent breaking changes, if allowedFields is not set in config, we only remove private and known dangerous user schema fields
             // TODO V5: allowedFields defaults to [] when undefined and remove this case
-            Object.keys(attributes).filter(
-              (key) =>
-                !nonWritable.includes(key) &&
-                !attributes[key].private &&
-                ![
-                  // many of these are included in nonWritable, but we'll list them again to be safe and since we're removing this code in v5 anyway
-                  // Strapi user schema fields
-                  "confirmed",
-                  "blocked",
-                  "confirmationToken",
-                  "resetPasswordToken",
-                  "provider",
-                  "id",
-                  "role",
-                  // other Strapi fields that might be added
-                  "createdAt",
-                  "updatedAt",
-                  "createdBy",
-                  "updatedBy",
-                  "publishedAt", // d&p
-                  "strapi_reviewWorkflows_stage", // review workflows
-                ].includes(key)
-            )
+          Object.keys(attributes).filter(
+            (key) =>
+              !nonWritable.includes(key) &&
+              !attributes[key].private &&
+              ![
+                // many of these are included in nonWritable, but we'll list them again to be safe and since we're removing this code in v5 anyway
+                // Strapi user schema fields
+                "confirmed",
+                "blocked",
+                "confirmationToken",
+                "resetPasswordToken",
+                "provider",
+                "id",
+                "role",
+                // other Strapi fields that might be added
+                "createdAt",
+                "updatedAt",
+                "createdBy",
+                "updatedBy",
+                "publishedAt", // d&p
+                "strapi_reviewWorkflows_stage", // review workflows
+              ].includes(key)
+          )
       )
     );
 
@@ -112,27 +112,27 @@ module.exports = (plugin) => {
 
     const role = await strapi
       .query("plugin::users-permissions.role")
-      .findOne({ where: { type: settings.default_role } });
+      .findOne({where: {type: settings.default_role}});
 
     if (!role) {
       throw new ApplicationError("Impossible to find the default role");
     }
 
-    const { email, username, provider } = params;
+    const {email, username, provider} = params;
 
     const identifierFilter = {
       $or: [
-        { email: email.toLowerCase() },
-        { username: email.toLowerCase() },
-        { username },
-        { email: username },
+        {email: email.toLowerCase()},
+        {username: email.toLowerCase()},
+        {username},
+        {email: username},
       ],
     };
 
     const conflictingUserCount = await strapi
       .query("plugin::users-permissions.user")
       .count({
-        where: { ...identifierFilter, provider },
+        where: {...identifierFilter, provider},
       });
 
     if (conflictingUserCount > 0) {
@@ -143,7 +143,7 @@ module.exports = (plugin) => {
       const conflictingUserCount = await strapi
         .query("plugin::users-permissions.user")
         .count({
-          where: { ...identifierFilter },
+          where: {...identifierFilter},
         });
 
       if (conflictingUserCount > 0) {
@@ -170,7 +170,7 @@ module.exports = (plugin) => {
         throw new ApplicationError(err.message);
       }
 
-      return ctx.send({ user: sanitizedUser });
+      return ctx.send({user: sanitizedUser});
     }
     const jwt = getService("jwt").issue(_.pick(user, ["id"]));
 
@@ -186,8 +186,8 @@ module.exports = (plugin) => {
     const params = ctx.request.body;
     const {withShift} = ctx.request.query;
 
-    const store = strapi.store({ type: "plugin", name: "users-permissions" });
-    const grantSettings = await store.get({ key: "grant" });
+    const store = strapi.store({type: "plugin", name: "users-permissions"});
+    const grantSettings = await store.get({key: "grant"});
 
     const grantProvider = provider === "local" ? "email" : provider;
 
@@ -198,7 +198,7 @@ module.exports = (plugin) => {
     if (provider === "local") {
       await validateCallbackBody(params);
 
-      const { identifier, idn, uuid, sub } = params;
+      const {identifier, idn, uuid, sub} = params;
 
       // Check if the user exists.
       let user = await strapi
@@ -207,10 +207,10 @@ module.exports = (plugin) => {
           where: {
             provider,
             $or: [
-              { email: identifier.toLowerCase() },
-              { username: identifier },
-              { EmployeeNumber: identifier },
-              { Phone: identifier },
+              {email: identifier.toLowerCase()},
+              {username: identifier},
+              {EmployeeNumber: identifier},
+              {Phone: identifier},
             ],
           },
           populate: {
@@ -246,7 +246,7 @@ module.exports = (plugin) => {
         }
       } else {
         await strapi.query("plugin::users-permissions.user").update({
-          where: { id: user.id },
+          where: {id: user.id},
           data: {
             idn: idn,
             uuid: uuid,
@@ -255,7 +255,7 @@ module.exports = (plugin) => {
         });
       }
 
-      const advancedSettings = await store.get({ key: "advanced" });
+      const advancedSettings = await store.get({key: "advanced"});
       const requiresConfirmation = _.get(
         advancedSettings,
         "email_confirmation"
@@ -271,21 +271,19 @@ module.exports = (plugin) => {
         );
       }
 
-        if(user && withShift ==='true'){
+      let shift = null
+      if (user && withShift === 'true') {
 
         user = mapUserWithSift(user)
-          return ctx.send({
-            jwt: getService("jwt").issue({ id: user.id }),
-            user: await sanitizeUser(user, ctx),
-            message: "login successfully",
-          });
-        }else{
-        // delete user.shift;
+        shift = user.shift
+      } else {
+        delete user.shift;
       }
 
       return ctx.send({
-        jwt: getService("jwt").issue({ id: user.id }),
+        jwt: getService("jwt").issue({id: user.id}),
         user: await sanitizeUser(user, ctx),
+        shift:shift??null,
         message: "login successfully",
       });
     }
@@ -302,7 +300,7 @@ module.exports = (plugin) => {
 
       return ctx.send({
         ok: true,
-        jwt: getService("jwt").issue({ id: user.id }),
+        jwt: getService("jwt").issue({id: user.id}),
         user: await sanitizeUser(user, ctx),
       });
     } catch (error) {
@@ -317,7 +315,7 @@ module.exports = (plugin) => {
       );
     }
 
-    const { currentPassword, password } = await validateChangePasswordBody(
+    const {currentPassword, password} = await validateChangePasswordBody(
       ctx.request.body
     );
 
@@ -341,27 +339,27 @@ module.exports = (plugin) => {
       );
     }
 
-    await getService("user").edit(user.id, { password });
+    await getService("user").edit(user.id, {password});
 
     ctx.send({
       ok: true,
-      jwt: getService("jwt").issue({ id: user.id }),
+      jwt: getService("jwt").issue({id: user.id}),
       user: await sanitizeUser(user, ctx),
       message: "Password changed successfully",
     });
   };
 
   plugin.controllers.auth.forgotPassword = async (ctx) => {
-    const { identifier } = await validateForgotPasswordBody(ctx.request.body);
+    const {identifier} = await validateForgotPasswordBody(ctx.request.body);
 
     // Find the user by identifier.
     const user = await strapi.query("plugin::users-permissions.user").findOne({
       where: {
         $or: [
-          { email: identifier.toLowerCase() },
-          { username: identifier },
-          { EmployeeNumber: identifier },
-          { Phone: identifier },
+          {email: identifier.toLowerCase()},
+          {username: identifier},
+          {EmployeeNumber: identifier},
+          {Phone: identifier},
         ],
       },
     });
@@ -394,7 +392,7 @@ module.exports = (plugin) => {
   };
 
   plugin.controllers.auth.resetPassword = async (ctx) => {
-    const { password, passwordConfirmation, code, identifier } =
+    const {password, passwordConfirmation, code, identifier} =
       await validateResetPasswordBody(ctx.request.body);
 
     if (password !== passwordConfirmation) {
@@ -407,10 +405,10 @@ module.exports = (plugin) => {
         where: {
           resetPasswordToken: code,
           $or: [
-            { email: identifier.toLowerCase() },
-            { username: identifier },
-            { EmployeeNumber: identifier },
-            { Phone: identifier },
+            {email: identifier.toLowerCase()},
+            {username: identifier},
+            {EmployeeNumber: identifier},
+            {Phone: identifier},
           ],
         },
       });
@@ -427,14 +425,14 @@ module.exports = (plugin) => {
     // Update the user.
     ctx.send({
       ok: true,
-      jwt: getService("jwt").issue({ id: user.id }),
+      jwt: getService("jwt").issue({id: user.id}),
       user: await sanitizeUser(user, ctx),
       message: "Password reseted successfully",
     });
   };
 
   plugin.controllers.auth.validateCode = async (ctx) => {
-    const { code, identifier } = ctx.request.body;
+    const {code, identifier} = ctx.request.body;
 
     if (!code) {
       throw new ValidationError("Incorrect code provided");
@@ -450,10 +448,10 @@ module.exports = (plugin) => {
         where: {
           resetPasswordToken: code,
           $or: [
-            { email: identifier.toLowerCase() },
-            { username: identifier },
-            { EmployeeNumber: identifier },
-            { Phone: identifier },
+            {email: identifier.toLowerCase()},
+            {username: identifier},
+            {EmployeeNumber: identifier},
+            {Phone: identifier},
           ],
         },
       });
