@@ -218,18 +218,16 @@ module.exports = (plugin) => {
               populate: {
                 days: {
                   populate: {
-                    day: {
-                      // where:{
-                      //   day:humanReadableDay
-                      // }
-                    },
-
+                    day: true,
                   }
                 }
               }
             }
           },
         });
+
+      ctx.send(user)
+      return 
 
       if (!user) {
         throw new ValidationError("Invalid identifier or password");
