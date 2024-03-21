@@ -280,7 +280,7 @@ module.exports = (plugin) => {
         user = mapUserWithSift(user)
 
       }else{
-        delete user.shift;
+        // delete user.shift;
       }
 
       return ctx.send({
