@@ -5,7 +5,7 @@ const {validateCheckINOutBody} = require("./Validation");
 const utils = require("@strapi/utils");
 const {mapUserWithSift, mapShiftDays} = require("../../app_utils");
 
-const {ApplicationError, } = utils.errors;
+const {ApplicationError,} = utils.errors;
 const {eachDayOfInterval, startOfMonth, endOfMonth, format} = require('date-fns');
 
 /**
@@ -426,7 +426,7 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
 
     }
 
-    const calculateRateOfCommitment=(attendedDays, absentDays, totalDays) =>{
+    const calculateRateOfCommitment = (attendedDays, absentDays, totalDays) => {
       if (totalDays === 0) {
         return 0; // To avoid division by zero
       }
@@ -447,21 +447,22 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
     let rateOfCommitment = 0.0
 
     for (const data of dayOfTheWeek) {
-      totalDays++
+      if (data.isPast === true) {
+        totalDays++
 
-      if (data.isWorkingDay === true && data.attended != null) {
-        attendedDays++
+        if (data.isWorkingDay === true && data.attended != null) {
+          attendedDays++
+        }
+        if (data.isWorkingDay === true && data.attended === null) {
+          absentDays++
+        }
+        if (data.isWorkingDay === false) {
+          offDays++
+        }
       }
-      if (data.isWorkingDay === true & data.isPast === true && data.attended === null) {
-        absentDays++
-      }
-      if (data.isWorkingDay === false) {
-        offDays++
-      }
-
     }
 
-    rateOfCommitment =calculateRateOfCommitment(attendedDays,absentDays,totalDays-offDays)
+    rateOfCommitment = calculateRateOfCommitment(attendedDays, absentDays, totalDays - offDays)
 
 
     return {
