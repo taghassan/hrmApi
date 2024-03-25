@@ -49,6 +49,12 @@ module.exports= {
         method: 'GET',
         path: '/attendance/getUserShift',
         handler: 'attendance.getUserShift',
+      },
+      {
+        method: 'GET',
+        path: '/attendance/get-attendance-report',
+        handler: 'attendance.getAttendanceReport',
+        config: {}
       }
     ]
 

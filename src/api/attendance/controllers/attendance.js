@@ -4,7 +4,9 @@ const url = require('url');
 const {validateCheckINOutBody} = require("./Validation");
 const utils = require("@strapi/utils");
 const {mapUserWithSift, mapShiftDays} = require("../../app_utils");
+
 const {ApplicationError, ValidationError, ForbiddenError} = utils.errors;
+const { eachDayOfInterval, startOfMonth, endOfMonth, startOfWeek, endOfWeek, format } = require('date-fns');
 
 /**
  * attendance controller
@@ -50,11 +52,7 @@ async function getUserShift(user) {
         populate: {
           days: {
             populate: {
-              day: {
-                // where:{
-                //   day:humanReadableDay
-                // }
-              },
+              day: true,
 
             }
           }
@@ -364,6 +362,61 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
       data: mappedUserWithSift,
       message: 'executed successfully !'
     })
-  }
+  },
+  async getAttendanceReport(ctx) {
+    let user = ctx.state.user;
 
+    user =getUserShift(user)
+
+  const now = new Date();
+  const firstDayOfMonth = startOfMonth(now);
+  const lastDayOfMonth = endOfMonth(now);
+
+
+    const entries = await strapi
+      .query("api::attendance.attendance").findMany({
+        where: {
+          $and: [
+            {
+              user: user.id
+            },
+            {
+              date:{
+                $lte:lastDayOfMonth,
+                $gte:firstDayOfMonth
+              }
+            }
+          ]
+        }
+      })
+
+    const allDaysInMonth = eachDayOfInterval({ start: firstDayOfMonth, end: lastDayOfMonth });
+
+    return user;
+  const groupedByWeek = allDaysInMonth.reduce( (acc, day) => {
+    const weekStartDate = startOfWeek(day);
+    const weekEndDate = endOfWeek(day);
+
+    const weekKey = `${format(weekStartDate, 'yyyy-MM-dd')} - ${format(weekEndDate, 'yyyy-MM-dd')}`;
+
+    if (!acc[weekKey]) {
+      acc[weekKey] = [];
+    }
+
+    acc[weekKey].push({day:day,name:format(day, 'EEEE')});
+
+    return acc;
+  }, {});
+
+
+
+  return groupedByWeek;
+},
+
+ async getAttendanceByDay(ctx,day) {
+   const user = ctx.state.user;
+
+
+    return day
+  }
 }));
