@@ -410,13 +410,13 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
 
         }
 
-if(format(day, 'yyyy-MM-dd') <=format(now, 'yyyy-MM-dd') )
+
         dayOfTheWeek.push({
           day: format(day, 'yyyy-MM-dd'),
           now: format(now, 'yyyy-MM-dd'),
           name: day.toLocaleString('en-us', {weekday: 'long'}),
           isWorkingDay: dayOfWork[0] ? dayOfWork[0].isWorkingDay : null,
-          isPast: format(day, 'yyyy-MM-dd') < format(now, 'yyyy-MM-dd'),
+          isPast: format(day, 'yyyy-MM-dd') <= format(now, 'yyyy-MM-dd'),
           dayOfWork: dayOfWork ? dayOfWork[0] : null,
           attended: attended ?? null
         })
@@ -452,7 +452,7 @@ if(format(day, 'yyyy-MM-dd') <=format(now, 'yyyy-MM-dd') )
       if (data.isWorkingDay === true && data.attended != null) {
         attendedDays++
       }
-      if (data.isWorkingDay === true && data.attended === null) {
+      if (data.isWorkingDay === true & data.isPast === true && data.attended === null) {
         absentDays++
       }
       if (data.isWorkingDay === false) {
