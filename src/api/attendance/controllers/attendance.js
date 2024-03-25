@@ -5,8 +5,8 @@ const {validateCheckINOutBody} = require("./Validation");
 const utils = require("@strapi/utils");
 const {mapUserWithSift, mapShiftDays} = require("../../app_utils");
 
-const {ApplicationError, ValidationError, ForbiddenError} = utils.errors;
-const { eachDayOfInterval, startOfMonth, endOfMonth, startOfWeek, endOfWeek, format } = require('date-fns');
+const {ApplicationError, } = utils.errors;
+const {eachDayOfInterval, startOfMonth, endOfMonth, format} = require('date-fns');
 
 /**
  * attendance controller
@@ -172,8 +172,7 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
       });
       return acc;
     }, {});
-
-    ctx.send(
+    return ctx.send(
       {
         ok: true,
         entries: groupedData,
@@ -364,141 +363,127 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
     })
   },
   async getAttendanceReport(ctx) {
+    const {from, to} = ctx.request.query
 
-    const checkInsAndOuts = [
-      {
-        "type": "checkIn",
-        "date": "2024-02-21",
-        "check_in_time": "09:00:00.000",
-        "check_out_time": null
-      },
-      {
-        "type": "checkIn",
-        "date": "2024-02-22",
-        "check_in_time": "09:00:00.000",
-        "check_out_time": null
-      },
-      {
-        "type": "checkOut",
-        "date": "2024-02-22",
-        "check_in_time": null,
-        "check_out_time": "12:00:00.000"
-      },
-      {
-        "type": "checkIn",
-        "date": "2024-02-23",
-        "check_in_time": "13:00:00.000",
-        "check_out_time": null
-      },
-      {
-        "type": "checkIn",
-        "date": "2024-02-24",
-        "check_in_time": "13:00:00.000",
-        "check_out_time": null
-      },
-      {
-        "type": "checkOut",
-        "date": "2024-02-24",
-        "check_in_time": null,
-        "check_out_time": "17:00:00.000"
-      },
-      {
-        "type": "checkIn",
-        "date": "2024-02-25",
-        "check_in_time": "09:30:00.000",
-        "check_out_time": null
-      },
-      {
-        "type": "checkOut",
-        "date": "2024-02-25",
-        "check_in_time": null,
-        "check_out_time": "16:30:00.000"
-      },
-      {
-        "type": "checkIn",
-        "date": "2024-02-26",
-        "check_in_time": "09:30:00.000",
-        "check_out_time": null
-      },
-      {
-        "type": "checkIn",
-        "date": "2024-02-27",
-        "check_in_time": "09:30:00.000",
-        "check_out_time": null
-      }
-    ];
+    const user = ctx.state.user;
 
-let data=[]
-// Function to calculate working hours
-    function calculateWorkingHours(checkInsAndOuts) {
-      let totalHours = 0;
+    const userWithShift = await getUserShift(user)
+    const mapUserWithShift = mapUserWithSift(userWithShift)
 
-      const groupedByDate = groupBy(checkInsAndOuts, 'date');
 
-      for (const date in groupedByDate) {
-        const entries = groupedByDate[date];
+    /**********************************************************/
+    /**   **/
+    /**********************************************************/
+    const now = new Date();
+    const firstDayOfMonth = from ?? startOfMonth(now);
+    const lastDayOfMonth = to ?? endOfMonth(now);
 
-        let checkOutCount = 0;
 
-        for (let i = 0; i < entries.length; i++) {
-          // data.push({data:date,type:entries[i].type,i:i})
-          if (entries[i].type === 'checkOut') {
+    const allDaysInMonth = eachDayOfInterval({start: firstDayOfMonth, end: lastDayOfMonth});
 
-            checkOutCount++;
-            if (checkOutCount === 1) {
-              const checkInTime = new Date(date + 'T' + entries[i - 1].check_in_time);
-              const checkOutTime = new Date(date + 'T' + entries[i].check_out_time);
-              const diff = (checkOutTime - checkInTime) / (1000 * 60 * 60); // Difference in hours
-              totalHours += diff;
-            }
-          } else if (entries[i].type === 'checkIn') {
-            if (checkOutCount === 0) {
-              // If no check-out for the check-in, consider the current time
-              const currentTime = new Date();
-              const checkInTime = new Date(date + 'T' + entries[i].check_in_time);
-              const diff = (currentTime - checkInTime) / (1000 * 60 * 60); // Difference in hours
-              totalHours += diff;
-            }
-          }
+
+    let dayOfTheWeek = []
+    for (const day of allDaysInMonth) {
+
+      if (mapUserWithShift.shift && userWithShift.shift.days) {
+
+        const dayOfWork = userWithShift.shift.days.filter(shiftDay => shiftDay.day.toLowerCase() === day.toLocaleString('en-us', {weekday: 'long'}).toLowerCase())
+        let attended = null
+        if (dayOfWork[0] && dayOfWork[0].isWorkingDay) {
+
+          attended = await strapi
+            .query("api::attendance.attendance").findOne({
+              where: {
+                $and: [
+                  {
+                    user: user.id
+                  },
+                  {
+                    date: `${format(day, 'yyyy-MM-dd')}`
+                  },
+                  {
+                    type: 'checkIn'
+                  }
+                ]
+              }
+            })
+
         }
 
+
+        dayOfTheWeek.push({
+          day: format(day, 'yyyy-MM-dd'),
+          now: format(now, 'yyyy-MM-dd'),
+          name: day.toLocaleString('en-us', {weekday: 'long'}),
+          isWorkingDay: dayOfWork[0] ? dayOfWork[0].isWorkingDay : null,
+          isPast: format(day, 'yyyy-MM-dd') < format(now, 'yyyy-MM-dd'),
+          dayOfWork: dayOfWork ? dayOfWork[0] : null,
+          attended: attended ?? null
+        })
+
       }
 
-      return totalHours;
+
     }
 
-// Function to calculate working days
-    function calculateWorkingDays(checkInsAndOuts) {
-      // Count unique dates
-      const uniqueDates = new Set(checkInsAndOuts.map(entry => entry.date));
-      return uniqueDates.size;
+    const calculateRateOfCommitment=(attendedDays, absentDays, totalDays) =>{
+      if (totalDays === 0) {
+        return 0; // To avoid division by zero
+      }
+
+      const attendedRatio = attendedDays / totalDays;
+      const commitmentRate = attendedRatio * 100;
+
+      return commitmentRate.toFixed(2); // Return commitment rate rounded to 2 decimal places
     }
 
-// Utility function to group array of objects by a key
-    function groupBy(arr, key) {
-      return arr.reduce((acc, obj) => {
-        const groupKey = obj[key];
-        acc[groupKey] = acc[groupKey] || [];
-        acc[groupKey].push(obj);
-        return acc;
-      }, {});
+    let totalDays = 0
+    let attendedDays = 0
+    let offDays = 0
+    let absentDays = 0
+    let vacation_balance = 0
+    let early_leave = 0
+    let permissions = 0
+    let rateOfCommitment = 0.0
+
+    for (const data of dayOfTheWeek) {
+      totalDays++
+
+      if (data.isWorkingDay === true && data.attended != null) {
+        attendedDays++
+      }
+      if (data.isWorkingDay === true && data.attended === null) {
+        absentDays++
+      }
+      if (data.isWorkingDay === false) {
+        offDays++
+      }
+
     }
 
-    const workingHours = calculateWorkingHours(checkInsAndOuts);
-    const workingDays = calculateWorkingDays(checkInsAndOuts);
+    rateOfCommitment =calculateRateOfCommitment(attendedDays,absentDays,totalDays-offDays)
+
 
     return {
-      data:data,
-      workingHours:workingHours,
-      workingDays:workingDays
+      totalDays,
+      attendedDays,
+      offDays,
+      absentDays,
+      rateOfCommitment,
+      vacation_balance,
+      early_leave,
+      permissions,
+      from: format(firstDayOfMonth, 'yyyy-MM-dd'),
+      to: format(lastDayOfMonth, 'yyyy-MM-dd')
     }
-
   },
 
- async getAttendanceByDay(ctx,day) {
-   const user = ctx.state.user;
+  async getAttendanceByDay(ctx, day) {
+    const user = ctx.state.user;
 
 
     return day
   }
 }));
+
+
