@@ -410,7 +410,7 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
 
         }
 
-
+if(format(day, 'yyyy-MM-dd') <=format(now, 'yyyy-MM-dd') )
         dayOfTheWeek.push({
           day: format(day, 'yyyy-MM-dd'),
           now: format(now, 'yyyy-MM-dd'),
