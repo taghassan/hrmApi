@@ -6,7 +6,15 @@ const utils = require("@strapi/utils");
 const {mapUserWithSift, mapShiftDays} = require("../../app_utils");
 
 const {ApplicationError,} = utils.errors;
-const {eachDayOfInterval, startOfMonth, endOfMonth, format} = require('date-fns');
+const {
+  eachDayOfInterval,
+  startOfMonth,
+  endOfMonth,
+  format,
+  parse,
+  differenceInMilliseconds,
+  formatDuration
+} = require('date-fns');
 
 /**
  * attendance controller
@@ -186,38 +194,8 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
 
     const user = ctx.state.user;
 
-
-    const lastCheckin = await strapi.entityService.findMany("api::attendance.attendance", {
-      filters: {
-        $and: [
-          {
-            user: user.id
-          },
-          {
-            type: 'checkIn'
-          },
-
-        ]
-      },
-      sort: {id: 'desc'},
-      limit: 1,
-    });
-
-    const lastCheckOut = await strapi.entityService.findMany("api::attendance.attendance", {
-      filters: {
-        $and: [
-          {
-            user: user.id
-          },
-          {
-            type: 'checkOut'
-          },
-
-        ]
-      },
-      sort: {id: 'desc'},
-      limit: 1,
-    });
+    const lastCheckin = await this.getLastAction('checkIn', user);
+    const lastCheckOut = await this.getLastAction('checkOut', user);
     const lastCheckinDatetime = lastCheckin[0] ? '' + lastCheckin[0].date + ' ' + lastCheckin[0].time : ''
     const lastCheckOutDatetime = lastCheckOut[0] ? '' + lastCheckOut[0].date + ' ' + lastCheckOut[0].time : ''
 
@@ -445,25 +423,60 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
     let early_leave = 0
     let permissions = 0
     let rateOfCommitment = 0.0
+    let late_attendance = 0
 
+    // return dayOfTheWeek
     for (const data of dayOfTheWeek) {
       if (data.isPast === true) {
         totalDays++
 
         if (data.isWorkingDay === true && data.attended != null) {
           attendedDays++
+
+          if (data.dayOfWork) {
+
+            const endTime = parse(`${data.attended.date} ${data.attended.time}`, 'yyyy-MM-dd HH:mm:ss.SSS', new Date());
+            const startTime = parse(`${data.attended.date} ${data.dayOfWork.start_at}`, 'yyyy-MM-dd HH:mm:ss.SSS', new Date());
+
+            // Calculate difference in milliseconds
+            let difference = differenceInMilliseconds(endTime, startTime);
+
+
+            // Handle cases where endTime is earlier than startTime (i.e., it's on the next day)
+            if (difference < 0) {
+              difference += 24 * 60 * 60 * 1000; // Add 24 hours in milliseconds
+            }
+
+            let differenceInSeconds = Math.floor(difference / 1000);
+            let differenceInMinutes = Math.floor(differenceInSeconds / 60);
+            let hrs = Math.floor(differenceInSeconds / 3600);
+
+            // console.log(`****************************************************`);
+            // console.log(`difference ${startTime} - ${endTime} = ${difference}  =============  ${differenceInSeconds} ++===++ ${differenceInMinutes} =----------= ${hrs}`);
+            // console.log(`****************************************************`);
+            if (differenceInMinutes > 15) {
+              ++late_attendance
+            }
+          }
+
         }
         if (data.isWorkingDay === true && data.attended === null) {
-          absentDays++
+          ++absentDays
         }
         if (data.isWorkingDay === false) {
-          offDays++
+          ++offDays
         }
       }
     }
 
     rateOfCommitment = calculateRateOfCommitment(attendedDays, absentDays, totalDays - offDays)
 
+    // const lastCheckin =await this.getLastAction('checkIn',user);
+    // const lastCheckOut = await this.getLastAction('checkOut',user);
+    // const lastCheckinDatetime = lastCheckin[0] ? '' + lastCheckin[0].date + ' ' + lastCheckin[0].time : ''
+    // const lastCheckOutDatetime = lastCheckOut[0] ? '' + lastCheckOut[0].date + ' ' + lastCheckOut[0].time : ''
+    //      last_checkin_datetime: lastCheckinDatetime,
+    //       last_checkout_datetime: lastCheckOutDatetime,
 
     return {
       totalDays,
@@ -474,6 +487,7 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
       vacation_balance,
       early_leave,
       permissions,
+      late_attendance,
       from: format(firstDayOfMonth, 'yyyy-MM-dd'),
       to: format(lastDayOfMonth, 'yyyy-MM-dd')
     }
@@ -484,6 +498,23 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
 
 
     return day
+  },
+  async getLastAction(actionType, user) {
+    return await strapi.entityService.findMany("api::attendance.attendance", {
+      filters: {
+        $and: [
+          {
+            user: user.id
+          },
+          {
+            type: `${actionType}`
+          },
+
+        ]
+      },
+      sort: {id: 'desc'},
+      limit: 1,
+    })
   }
 }));
 
