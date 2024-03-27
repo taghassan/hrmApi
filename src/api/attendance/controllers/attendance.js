@@ -155,36 +155,39 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
 
   async attendanceHistory(ctx) {
     const user = ctx.state.user;
+    const sanitizedQueryParams = await this.sanitizeQuery(ctx);
 
-    const entries = await strapi
-      .service("api::attendance.attendance").find({
-        where: {
-          $and: [
-            {
-              user: user.id
-            }
-          ]
+
+    sanitizedQueryParams.where = {
+      $and: [
+        {
+          user: user.id
         }
-      })
+      ]
+    }
 
-    // Group data by date
-    const groupedData = entries.results.reduce((acc, item) => {
-      const date = item.date;
-      if (!acc[date]) {
-        acc[date] = [];
-      }
-      acc[date].push({
-        type: item.type,
-        check_in_time: item.type === 'checkIn' ? item.time : null,
-        check_out_time: item.type === 'checkOut' ? item.time : null
-      });
-      return acc;
-    }, {});
+    const {results, pagination} = await strapi
+      .service("api::attendance.attendance").find(sanitizedQueryParams)
+    
+    const outputArr = [];
+    for (const entry of results) {
+
+      outputArr.push(
+        {
+          date: entry.date,
+          type: entry.type,
+          check_in_time: entry.type === 'checkIn' ? entry.time : null,
+          check_out_time: entry.type === 'checkOut' ? entry.time : null
+        }
+      )
+    }
+
+
     return ctx.send(
       {
         ok: true,
-        entries: groupedData,
-        pagination: entries.pagination,
+        entries: outputArr,
+        pagination: pagination,
         message: 'executed successfully !'
       }
     )
