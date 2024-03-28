@@ -168,7 +168,7 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
 
     const {results, pagination} = await strapi
       .service("api::attendance.attendance").find(sanitizedQueryParams)
-    
+
     const outputArr = [];
     for (const entry of results) {
 
