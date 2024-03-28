@@ -199,6 +199,8 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
 
     const lastCheckin = await this.getLastAction('checkIn', user);
     const lastCheckOut = await this.getLastAction('checkOut', user);
+
+
     const lastCheckinDatetime = lastCheckin[0] ? '' + lastCheckin[0].date + ' ' + lastCheckin[0].time : ''
     const lastCheckOutDatetime = lastCheckOut[0] ? '' + lastCheckOut[0].date + ' ' + lastCheckOut[0].time : ''
 
@@ -208,7 +210,7 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
         ok: true,
         // lastCheckin: lastCheckin[0] ?? null,
         // lastCheckOut: lastCheckOut[0] ?? null,
-        last_checkin_datetime: lastCheckinDatetime,
+         last_checkin_datetime: lastCheckinDatetime,
         last_checkout_datetime: lastCheckOutDatetime,
         message: 'executed successfully !'
       }
@@ -270,6 +272,15 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
       shift = mapUserWithShift.shift
     }
 
+
+    let first_check_in = await this.getLastAction('checkIn', user,'asc',new Date());
+    let last_check_out = await this.getLastAction('checkOut', user,'desc',new Date());
+    if(!first_check_in[0]){
+       first_check_in = await this.getLastAction('checkIn', user,'asc');
+
+       last_check_out = await this.getLastAction('checkOut', user,'desc');
+    }
+
     ctx.send({
       name: user.NameAr,
       NameEn: user.NameEn,
@@ -278,6 +289,8 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
       branch_id: branch ? branch.id ?? 0 : null,
 
       image: userWithBranch.Photo ? userWithBranch.Photo.url : '',
+      first_check_in:first_check_in[0] ? '' + first_check_in[0].date + ' ' + first_check_in[0].time : null,
+      last_check_out:last_check_out[0] ? '' + last_check_out[0].date + ' ' + last_check_out[0].time : null,
       shift: shift ?? null
     })
 
@@ -502,8 +515,9 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
 
     return day
   },
-  async getLastAction(actionType, user) {
-    return await strapi.entityService.findMany("api::attendance.attendance", {
+  async getLastAction(actionType, user,sort='desc',day) {
+
+    let filter={
       filters: {
         $and: [
           {
@@ -515,9 +529,21 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
 
         ]
       },
-      sort: {id: 'desc'},
+      sort: {id: sort},
       limit: 1,
-    })
+    }
+
+    if(day){
+      filter.filters.$and.push({
+
+        date: `${format(day, 'yyyy-MM-dd')}`
+
+      })
+    }
+
+
+
+    return await strapi.entityService.findMany("api::attendance.attendance",filter )
   }
 }));
 
