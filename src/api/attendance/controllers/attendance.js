@@ -490,8 +490,8 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
       email: user.email,
       branch_id: branch ? branch.id ?? 0 : null,
 
-      image: userWithBranch.Photo ? `http://${process.env.HOST}:${process.env.PORT}${userWithBranch.Photo.url}` : '',
-      photo: userWithBranch.Photo ? `http://${process.env.HOST}:${process.env.PORT}${userWithBranch.Photo.url}` : '',
+      image: userWithBranch.Photo ? `https://strapi.syscodeia.ae${userWithBranch.Photo.url}` : '',
+      photo: userWithBranch.Photo ? `https://strapi.syscodeia.ae${userWithBranch.Photo.url}` : '',
       first_check_in: first_check_in[0] ? '' + first_check_in[0].date + ' ' + first_check_in[0].time : null,
       last_check_out: last_check_out[0] ? '' + last_check_out[0].date + ' ' + last_check_out[0].time : null,
       shift: shift ?? null

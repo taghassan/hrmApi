@@ -284,7 +284,7 @@ module.exports = (plugin) => {
       }
 
       if(user.Photo){
-        user.photo=`http://${process.env.HOST}:${process.env.PORT}${user.Photo.url??''}`
+        user.photo=`https://strapi.syscodeia.ae${user.Photo.url??''}`
         delete user.Photo;
       }else{
         user.photo='https://media.istockphoto.com/id/1214428300/vector/default-profile-picture-avatar-photo-placeholder-vector-illustration.jpg?s=612x612&w=0&k=20&c=vftMdLhldDx9houN4V-g3C9k0xl6YeBcoB_Rk6Trce0='
