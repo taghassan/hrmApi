@@ -22,6 +22,9 @@ const {
 
 const {createCoreController} = require('@strapi/strapi').factories;
 
+const checkOut_KEY = 'checkOut'
+const checkIn_KEY = 'checkIn'
+
 function formatDate(currentTime, isTimeFormat) {
   const year = currentTime.getFullYear();
   const month = String(currentTime.getMonth() + 1).padStart(2, '0'); // Months are zero-based, so we add 1
@@ -81,11 +84,43 @@ async function getBranch(branch_id) {
   });
 }
 
+const applySortByTime = (a, b) => {
+  const timeA = a.time.split(':').map(Number); // Convert time string to array of numbers
+  const timeB = b.time.split(':').map(Number);
+
+  // Compare hours
+  if (timeA[0] < timeB[0]) {
+    return -1;
+  }
+  if (timeA[0] > timeB[0]) {
+    return 1;
+  }
+
+  // If hours are equal, compare minutes
+  if (timeA[1] < timeB[1]) {
+    return -1;
+  }
+  if (timeA[1] > timeB[1]) {
+    return 1;
+  }
+
+  // If minutes are equal, compare seconds
+  if (timeA[2] < timeB[2]) {
+    return -1;
+  }
+  if (timeA[2] > timeB[2]) {
+    return 1;
+  }
+
+  return 0; // Times are equal
+}
+
 module.exports = createCoreController('api::attendance.attendance', ({strapi}) => ({
 
   async checkOut(ctx) {
     const {current_lat, current_lang, actionDate, time} = await validateCheckINOutBody(ctx.request.body)
     const user = ctx.state.user;
+    const userWithBranch = await getUserBranch(user)
     const currentTime = new Date();
 
     const entry = await strapi
@@ -97,6 +132,7 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
             "date": actionDate ?? currentTime,
             "time": time ?? currentTime,
             "user": user.id,
+            "branch": userWithBranch && userWithBranch.branch ? userWithBranch.branch.id : null,
             "latitude": current_lat ?? '0.0',
             "longitude": current_lang ?? '0.0'
           }
@@ -127,6 +163,7 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
             "date": actionDate ?? currentTime,
             "time": time ?? currentTime,
             "user": user.id,
+            "branch": 1,
             "latitude": current_lat ?? '0.0',
             "longitude": current_lang ?? '0.0'
           }
@@ -154,34 +191,160 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
   },
 
   async attendanceHistory(ctx) {
+
+    const {from, to} = ctx.request.query
+
+    /**********************************************************/
+    /**   **/
+    /**********************************************************/
+    const now = new Date();
+    const firstDayOfMonth = from ?? startOfMonth(now);
+    const lastDayOfMonth = to ?? endOfMonth(now);
+    const allDaysInMonth = eachDayOfInterval({start: firstDayOfMonth, end: lastDayOfMonth});
+
+
     const user = ctx.state.user;
+    const userWithShift = await getUserShift(user)
+    const mapUserWithShift = mapUserWithSift(userWithShift)
     const sanitizedQueryParams = await this.sanitizeQuery(ctx);
 
 
-    sanitizedQueryParams.where = {
+    sanitizedQueryParams.filters = {
       $and: [
         {
           user: user.id
+        },
+        {
+          date: {
+            $gte: `${format(firstDayOfMonth, 'yyyy-MM-dd')}`,
+            $lte: `${format(lastDayOfMonth, 'yyyy-MM-dd')}`,
+            $notNull: true,
+          },
         }
+
       ]
     }
+    sanitizedQueryParams.populate = '*'
+
 
     const {results, pagination} = await strapi
       .service("api::attendance.attendance").find(sanitizedQueryParams)
 
     const outputArr = [];
-    for (const entry of results) {
+    // for (const entry of results) {
+    //
+    //   outputArr.push(
+    //     {
+    //       date: entry.date,
+    //       type: entry.type,
+    //       check_in_time: entry.type === 'checkIn' ? entry.time : null,
+    //       check_out_time: entry.type === 'checkOut' ? entry.time : null
+    //     }
+    //   )
+    // }
 
-      outputArr.push(
-        {
-          date: entry.date,
-          type: entry.type,
-          check_in_time: entry.type === 'checkIn' ? entry.time : null,
-          check_out_time: entry.type === 'checkOut' ? entry.time : null
+
+    for (const day of allDaysInMonth.reverse()) {
+
+      let status = 'absent'
+
+      /**********************************************************/
+      /** check is past  **/
+      /**********************************************************/
+
+      if (format(day, 'yyyy-MM-dd') <= format(now, 'yyyy-MM-dd')) {
+
+        const todayCheckInAttendance = results.filter(attendance => (attendance.date && format(attendance.date, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd')) && attendance.type === `${checkIn_KEY}`)
+        const todayCheckOutAttendance = results.filter(attendance => (attendance.date && format(attendance.date, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd')) && attendance.type === `${checkOut_KEY}`)
+
+        let checkIn = todayCheckInAttendance.sort(applySortByTime)[0]
+        let checkOut = todayCheckOutAttendance.sort(applySortByTime)[todayCheckOutAttendance.length - 1]
+
+        let lateInMinutes = 0
+
+        let dayOfWork = null
+
+        dayOfWork = userWithShift.shift.days.filter(shiftDay => shiftDay.day.toLowerCase() === day.toLocaleString('en-us', {weekday: 'long'}).toLowerCase())
+
+
+        if (checkIn) {
+
+
+          status = 'attendOnTime'
+
+          if (mapUserWithShift.shift && userWithShift.shift.days) {
+
+            if (dayOfWork[0] && dayOfWork[0].isWorkingDay) {
+
+              const endTime = parse(`${format(checkIn.date, 'yyyy-MM-dd')} ${checkIn.time}`, 'yyyy-MM-dd HH:mm:ss.SSS', new Date());
+              const startTime = parse(`${format(day, 'yyyy-MM-dd')} ${dayOfWork[0].start_at}`, 'yyyy-MM-dd HH:mm:ss.SSS', new Date());
+
+
+              let difference = differenceInMilliseconds(endTime, startTime);
+
+              // Handle cases where endTime is earlier than startTime (i.e., it's on the next day)
+              if (difference < 0) {
+                difference += 24 * 60 * 60 * 1000; // Add 24 hours in milliseconds
+              }
+
+
+              let differenceInSeconds = Math.floor(difference / 1000);
+              let differenceInMinutes = Math.floor(differenceInSeconds / 60);
+              let hrs = Math.floor(differenceInSeconds / 3600);
+
+              // console.log(`****************************************************`);
+              // console.log("day",day);
+              // console.log("differenceInSeconds",differenceInSeconds);
+              // console.log("differenceInMinutes",differenceInMinutes);
+              // console.log("hrs",hrs);
+              // console.log("startTime", `${startTime}`.split('T'));
+              // console.log("endTime",`${endTime}`.split('T'));
+              // console.log("dayOfWork start ",`${dayOfWork[0].start_at}`.split('T'));
+              // console.log(`****************************************************`);
+              //
+              //
+
+              if (differenceInMinutes > 20) {
+                status = 'attendOnLate'
+              }
+
+              lateInMinutes = differenceInMinutes
+
+            }
+
+          }
+
+
+          checkIn = checkIn.type === checkIn_KEY ? checkIn.time : null
+        } else {
+
+          if (dayOfWork[0] && dayOfWork[0].isWorkingDay) {
+
+            status = 'absent'
+          } else if (dayOfWork[0] && dayOfWork[0].isWeekEnd) {
+
+            status = 'WeekEnd'
+          } else {
+
+            status = 'notWorkingDay'
+          }
         }
-      )
-    }
 
+        if (checkOut) {
+          checkOut = checkOut.type === checkOut_KEY ? checkOut.time : null
+        }
+
+
+        outputArr.push({
+          date: format(day, 'yyyy-MM-dd'),
+          isLate: lateInMinutes > 20,
+          dayOfWork: dayOfWork ? dayOfWork[0] ?? null : null,
+          checkIn: checkIn ?? null,
+          checkOut: checkOut ?? null,
+          status: status ?? ''
+        })
+      }
+    }
 
     return ctx.send(
       {
@@ -195,23 +358,62 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
 
   async recentActions(ctx) {
 
+    // const user = ctx.state.user;
+    //
+    // const lastCheckin = await this.getLastAction('checkIn', user);
+    // const lastCheckOut = await this.getLastAction('checkOut', user);
+    //
+    //
+    // const lastCheckinDatetime = lastCheckin[0] ? '' + lastCheckin[0].date + ' ' + lastCheckin[0].time : ''
+    // const lastCheckOutDatetime = lastCheckOut[0] ? '' + lastCheckOut[0].date + ' ' + lastCheckOut[0].time : ''
+    //
+    //
+    // ctx.send(
+    //   {
+    //     ok: true,
+    //     // lastCheckin: lastCheckin[0] ?? null,
+    //     // lastCheckOut: lastCheckOut[0] ?? null,
+    //     last_checkin_datetime: lastCheckinDatetime,
+    //     last_checkout_datetime: lastCheckOutDatetime,
+    //     message: 'executed successfully !'
+    //   }
+    // )
+
     const user = ctx.state.user;
-
-    const lastCheckin = await this.getLastAction('checkIn', user);
-    const lastCheckOut = await this.getLastAction('checkOut', user);
+    const sanitizedQueryParams = await this.sanitizeQuery(ctx);
 
 
-    const lastCheckinDatetime = lastCheckin[0] ? '' + lastCheckin[0].date + ' ' + lastCheckin[0].time : ''
-    const lastCheckOutDatetime = lastCheckOut[0] ? '' + lastCheckOut[0].date + ' ' + lastCheckOut[0].time : ''
+    sanitizedQueryParams.filters = {
+      $and: [
+        {
+          user: user.id
+        }
+      ]
+    }
+    sanitizedQueryParams.sort= {date: 'desc'}
+
+    const {results, pagination} = await strapi
+      .service("api::attendance.attendance").find(sanitizedQueryParams)
+
+    const outputArr = [];
+    for (const entry of results) {
+
+      outputArr.push(
+        {
+          date: entry.date,
+          type: entry.type,
+          check_in_time: entry.type === checkIn_KEY ? entry.time : null,
+          check_out_time: entry.type === checkOut_KEY ? entry.time : null
+        }
+      )
+    }
 
 
-    ctx.send(
+    return ctx.send(
       {
         ok: true,
-        // lastCheckin: lastCheckin[0] ?? null,
-        // lastCheckOut: lastCheckOut[0] ?? null,
-         last_checkin_datetime: lastCheckinDatetime,
-        last_checkout_datetime: lastCheckOutDatetime,
+        entries: outputArr,
+        pagination: pagination,
         message: 'executed successfully !'
       }
     )
@@ -273,12 +475,12 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
     }
 
 
-    let first_check_in = await this.getLastAction('checkIn', user,'asc',new Date());
-    let last_check_out = await this.getLastAction('checkOut', user,'desc',new Date());
-    if(!first_check_in[0]){
-       first_check_in = await this.getLastAction('checkIn', user,'asc');
+    let first_check_in = await this.getLastAction('checkIn', user, 'asc', new Date());
+    let last_check_out = await this.getLastAction('checkOut', user, 'desc', new Date());
+    if (!first_check_in[0]) {
+      first_check_in = await this.getLastAction('checkIn', user, 'asc');
 
-       last_check_out = await this.getLastAction('checkOut', user,'desc');
+      last_check_out = await this.getLastAction('checkOut', user, 'desc');
     }
 
     ctx.send({
@@ -288,9 +490,10 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
       email: user.email,
       branch_id: branch ? branch.id ?? 0 : null,
 
-      image: userWithBranch.Photo ? userWithBranch.Photo.url : '',
-      first_check_in:first_check_in[0] ? '' + first_check_in[0].date + ' ' + first_check_in[0].time : null,
-      last_check_out:last_check_out[0] ? '' + last_check_out[0].date + ' ' + last_check_out[0].time : null,
+      image: userWithBranch.Photo ? `http://${process.env.HOST}:${process.env.PORT}${userWithBranch.Photo.url}` : '',
+      photo: userWithBranch.Photo ? `http://${process.env.HOST}:${process.env.PORT}${userWithBranch.Photo.url}` : '',
+      first_check_in: first_check_in[0] ? '' + first_check_in[0].date + ' ' + first_check_in[0].time : null,
+      last_check_out: last_check_out[0] ? '' + last_check_out[0].date + ' ' + last_check_out[0].time : null,
       shift: shift ?? null
     })
 
@@ -372,7 +575,6 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
     const firstDayOfMonth = from ?? startOfMonth(now);
     const lastDayOfMonth = to ?? endOfMonth(now);
 
-
     const allDaysInMonth = eachDayOfInterval({start: firstDayOfMonth, end: lastDayOfMonth});
 
 
@@ -412,7 +614,7 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
           isWorkingDay: dayOfWork[0] ? dayOfWork[0].isWorkingDay : null,
           isPast: format(day, 'yyyy-MM-dd') <= format(now, 'yyyy-MM-dd'),
           dayOfWork: dayOfWork ? dayOfWork[0] : null,
-          attended: attended ?? null
+          attended: attended ?? null,
         })
 
       }
@@ -470,7 +672,7 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
             // console.log(`****************************************************`);
             // console.log(`difference ${startTime} - ${endTime} = ${difference}  =============  ${differenceInSeconds} ++===++ ${differenceInMinutes} =----------= ${hrs}`);
             // console.log(`****************************************************`);
-            if (differenceInMinutes > 15) {
+            if (differenceInMinutes > 20) {
               ++late_attendance
             }
           }
@@ -504,6 +706,10 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
       early_leave,
       permissions,
       late_attendance,
+
+      nationalIDExpiryDate: user.nationalIDExpiryDate,
+      passportExpiryDate: user.passportExpiryDate,
+      residenceExpiryDate: user.residenceExpiryDate,
       from: format(firstDayOfMonth, 'yyyy-MM-dd'),
       to: format(lastDayOfMonth, 'yyyy-MM-dd')
     }
@@ -515,9 +721,9 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
 
     return day
   },
-  async getLastAction(actionType, user,sort='desc',day) {
+  async getLastAction(actionType, user, sort = 'desc', day) {
 
-    let filter={
+    let filter = {
       filters: {
         $and: [
           {
@@ -531,9 +737,10 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
       },
       sort: {id: sort},
       limit: 1,
+      populate: '*',
     }
 
-    if(day){
+    if (day) {
       filter.filters.$and.push({
 
         date: `${format(day, 'yyyy-MM-dd')}`
@@ -542,8 +749,7 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
     }
 
 
-
-    return await strapi.entityService.findMany("api::attendance.attendance",filter )
+    return await strapi.entityService.findMany("api::attendance.attendance", filter)
   }
 }));
 

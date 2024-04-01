@@ -7,6 +7,7 @@
       const dayCast = {
         id: day.id,
         isWorkingDay: day.isWorkingDay,
+        isWeekEnd: day.isWeekEnd,
         start_at: day.start_at,
         end_at: day.end_at,
         day: day.day ? day.day.day : '',
@@ -31,6 +32,7 @@ const mapShiftDays =(shift)=>{
       const dayCast = {
         id: day.id,
         isWorkingDay: day.isWorkingDay,
+        isWeekEnd: day.isWeekEnd,
         start_at: day.start_at,
         end_at: day.end_at,
         day: day.day ? day.day.day : '',

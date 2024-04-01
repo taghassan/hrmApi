@@ -124,6 +124,15 @@
       "type": "relation",
       "relation": "oneToOne",
       "target": "api::branch.branch"
+    },
+    "nationalIDExpiryDate": {
+      "type": "date"
+    },
+    "passportExpiryDate": {
+      "type": "date"
+    },
+    "residenceExpiryDate": {
+      "type": "date"
     }
   }
 }
