@@ -163,7 +163,7 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
             "date": actionDate ?? currentTime,
             "time": time ?? currentTime,
             "user": user.id,
-            "branch": 1,
+            "branch": userWithBranch && userWithBranch.branch ? userWithBranch.branch.id : null,
             "latitude": current_lat ?? '0.0',
             "longitude": current_lang ?? '0.0'
           }
@@ -391,6 +391,7 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
       ]
     }
     sanitizedQueryParams.sort= {date: 'desc'}
+    sanitizedQueryParams.populate= '*'
 
     const {results, pagination} = await strapi
       .service("api::attendance.attendance").find(sanitizedQueryParams)
@@ -402,6 +403,8 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
         {
           date: entry.date,
           type: entry.type,
+          branch:entry.branch?entry.branch.name:'',
+          branchId:entry.branch?entry.branch.id:null,
           check_in_time: entry.type === checkIn_KEY ? entry.time : null,
           check_out_time: entry.type === checkOut_KEY ? entry.time : null
         }
