@@ -192,168 +192,176 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
 
   async attendanceHistory(ctx) {
 
-    const {from, to} = ctx.request.query
-
-    /**********************************************************/
-    /**   **/
-    /**********************************************************/
-    const now = new Date();
-    const firstDayOfMonth = from ?? startOfMonth(now);
-    const lastDayOfMonth = to ?? endOfMonth(now);
-    const allDaysInMonth = eachDayOfInterval({start: firstDayOfMonth, end: lastDayOfMonth});
+    try{
 
 
-    const user = ctx.state.user;
-    const userWithShift = await getUserShift(user)
-    const mapUserWithShift = mapUserWithSift(userWithShift)
-    const sanitizedQueryParams = await this.sanitizeQuery(ctx);
+      const {from, to} = ctx.request.query
+
+      /**********************************************************/
+      /**   **/
+      /**********************************************************/
+      const now = new Date();
+      const firstDayOfMonth = from ?? startOfMonth(now);
+      const lastDayOfMonth = to ?? endOfMonth(now);
+      const allDaysInMonth = eachDayOfInterval({start: firstDayOfMonth, end: lastDayOfMonth});
 
 
-    sanitizedQueryParams.filters = {
-      $and: [
-        {
-          user: user.id
-        },
-        {
-          date: {
-            $gte: `${format(firstDayOfMonth, 'yyyy-MM-dd')}`,
-            $lte: `${format(lastDayOfMonth, 'yyyy-MM-dd')}`,
-            $notNull: true,
+      const user = ctx.state.user;
+      const userWithShift = await getUserShift(user)
+      const mapUserWithShift = mapUserWithSift(userWithShift)
+      const sanitizedQueryParams = await this.sanitizeQuery(ctx);
+
+
+      sanitizedQueryParams.filters = {
+        $and: [
+          {
+            user: user.id
           },
-        }
+          {
+            date: {
+              $gte: `${format(firstDayOfMonth, 'yyyy-MM-dd')}`,
+              $lte: `${format(lastDayOfMonth, 'yyyy-MM-dd')}`,
+              $notNull: true,
+            },
+          }
 
-      ]
-    }
-    sanitizedQueryParams.populate = '*'
-
-
-    const {results, pagination} = await strapi
-      .service("api::attendance.attendance").find(sanitizedQueryParams)
-
-    const outputArr = [];
-    // for (const entry of results) {
-    //
-    //   outputArr.push(
-    //     {
-    //       date: entry.date,
-    //       type: entry.type,
-    //       check_in_time: entry.type === 'checkIn' ? entry.time : null,
-    //       check_out_time: entry.type === 'checkOut' ? entry.time : null
-    //     }
-    //   )
-    // }
+        ]
+      }
+      sanitizedQueryParams.populate = '*'
 
 
-    for (const day of allDaysInMonth.reverse()) {
+      const {results, pagination} = await strapi
+        .service("api::attendance.attendance").find(sanitizedQueryParams)
 
-      let status = 'absent'
-
-      /**********************************************************/
-      /** check is past  **/
-      /**********************************************************/
-
-      if (format(day, 'yyyy-MM-dd') <= format(now, 'yyyy-MM-dd')) {
-
-        const todayCheckInAttendance = results.filter(attendance => (attendance.date && format(attendance.date, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd')) && attendance.type === `${checkIn_KEY}`)
-        const todayCheckOutAttendance = results.filter(attendance => (attendance.date && format(attendance.date, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd')) && attendance.type === `${checkOut_KEY}`)
-
-        let checkIn = todayCheckInAttendance.sort(applySortByTime)[0]
-        let checkOut = todayCheckOutAttendance.sort(applySortByTime)[todayCheckOutAttendance.length - 1]
-
-        let lateInMinutes = 0
-
-        let dayOfWork = null
-
-        dayOfWork = userWithShift.shift.days.filter(shiftDay => shiftDay.day.toLowerCase() === day.toLocaleString('en-us', {weekday: 'long'}).toLowerCase())
+      const outputArr = [];
+      // for (const entry of results) {
+      //
+      //   outputArr.push(
+      //     {
+      //       date: entry.date,
+      //       type: entry.type,
+      //       check_in_time: entry.type === 'checkIn' ? entry.time : null,
+      //       check_out_time: entry.type === 'checkOut' ? entry.time : null
+      //     }
+      //   )
+      // }
 
 
-        if (checkIn) {
+      for (const day of allDaysInMonth.reverse()) {
+
+        let status = 'absent'
+
+        /**********************************************************/
+        /** check is past  **/
+        /**********************************************************/
+
+        if (format(day, 'yyyy-MM-dd') <= format(now, 'yyyy-MM-dd')) {
+
+          const todayCheckInAttendance = results.filter(attendance => (attendance.date && format(attendance.date, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd')) && attendance.type === `${checkIn_KEY}`)
+          const todayCheckOutAttendance = results.filter(attendance => (attendance.date && format(attendance.date, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd')) && attendance.type === `${checkOut_KEY}`)
+
+          let checkIn = todayCheckInAttendance.sort(applySortByTime)[0]
+          let checkOut = todayCheckOutAttendance.sort(applySortByTime)[todayCheckOutAttendance.length - 1]
+
+          let lateInMinutes = 0
+
+          let dayOfWork = null
+
+          dayOfWork = userWithShift.shift.days.filter(shiftDay => shiftDay.day.toLowerCase() === day.toLocaleString('en-us', {weekday: 'long'}).toLowerCase())
 
 
-          status = 'attendOnTime'
-
-          if (mapUserWithShift.shift && userWithShift.shift.days) {
-
-            if (dayOfWork[0] && dayOfWork[0].isWorkingDay) {
-
-              const endTime = parse(`${format(checkIn.date, 'yyyy-MM-dd')} ${checkIn.time}`, 'yyyy-MM-dd HH:mm:ss.SSS', new Date());
-              const startTime = parse(`${format(day, 'yyyy-MM-dd')} ${dayOfWork[0].start_at}`, 'yyyy-MM-dd HH:mm:ss.SSS', new Date());
+          if (checkIn) {
 
 
-              let difference = differenceInMilliseconds(endTime, startTime);
+            status = 'attendOnTime'
 
-              // Handle cases where endTime is earlier than startTime (i.e., it's on the next day)
-              if (difference < 0) {
-                difference += 24 * 60 * 60 * 1000; // Add 24 hours in milliseconds
+            if (mapUserWithShift.shift && userWithShift.shift.days) {
+
+              if (dayOfWork[0] && dayOfWork[0].isWorkingDay) {
+
+                const endTime = parse(`${format(checkIn.date, 'yyyy-MM-dd')} ${checkIn.time}`, 'yyyy-MM-dd HH:mm:ss.SSS', new Date());
+                const startTime = parse(`${format(day, 'yyyy-MM-dd')} ${dayOfWork[0].start_at}`, 'yyyy-MM-dd HH:mm:ss.SSS', new Date());
+
+
+                let difference = differenceInMilliseconds(endTime, startTime);
+
+                // Handle cases where endTime is earlier than startTime (i.e., it's on the next day)
+                if (difference < 0) {
+                  difference += 24 * 60 * 60 * 1000; // Add 24 hours in milliseconds
+                }
+
+
+                let differenceInSeconds = Math.floor(difference / 1000);
+                let differenceInMinutes = Math.floor(differenceInSeconds / 60);
+                let hrs = Math.floor(differenceInSeconds / 3600);
+
+                // console.log(`****************************************************`);
+                // console.log("day",day);
+                // console.log("differenceInSeconds",differenceInSeconds);
+                // console.log("differenceInMinutes",differenceInMinutes);
+                // console.log("hrs",hrs);
+                // console.log("startTime", `${startTime}`.split('T'));
+                // console.log("endTime",`${endTime}`.split('T'));
+                // console.log("dayOfWork start ",`${dayOfWork[0].start_at}`.split('T'));
+                // console.log(`****************************************************`);
+                //
+                //
+
+                if (differenceInMinutes > 20) {
+                  status = 'attendOnLate'
+                }
+
+                lateInMinutes = differenceInMinutes
+
               }
-
-
-              let differenceInSeconds = Math.floor(difference / 1000);
-              let differenceInMinutes = Math.floor(differenceInSeconds / 60);
-              let hrs = Math.floor(differenceInSeconds / 3600);
-
-              // console.log(`****************************************************`);
-              // console.log("day",day);
-              // console.log("differenceInSeconds",differenceInSeconds);
-              // console.log("differenceInMinutes",differenceInMinutes);
-              // console.log("hrs",hrs);
-              // console.log("startTime", `${startTime}`.split('T'));
-              // console.log("endTime",`${endTime}`.split('T'));
-              // console.log("dayOfWork start ",`${dayOfWork[0].start_at}`.split('T'));
-              // console.log(`****************************************************`);
-              //
-              //
-
-              if (differenceInMinutes > 20) {
-                status = 'attendOnLate'
-              }
-
-              lateInMinutes = differenceInMinutes
 
             }
 
-          }
 
-
-          checkIn = checkIn.type === checkIn_KEY ? checkIn.time : null
-        } else {
-
-          if (dayOfWork[0] && dayOfWork[0].isWorkingDay) {
-
-            status = 'absent'
-          } else if (dayOfWork[0] && dayOfWork[0].isWeekEnd) {
-
-            status = 'WeekEnd'
+            checkIn = checkIn.type === checkIn_KEY ? checkIn.time : null
           } else {
 
-            status = 'notWorkingDay'
+            if (dayOfWork[0] && dayOfWork[0].isWorkingDay) {
+
+              status = 'absent'
+            } else if (dayOfWork[0] && dayOfWork[0].isWeekEnd) {
+
+              status = 'WeekEnd'
+            } else {
+
+              status = 'notWorkingDay'
+            }
           }
+
+          if (checkOut) {
+            checkOut = checkOut.type === checkOut_KEY ? checkOut.time : null
+          }
+
+
+          outputArr.push({
+            date: format(day, 'yyyy-MM-dd'),
+            isLate: lateInMinutes > 20,
+            dayOfWork: dayOfWork ? dayOfWork[0] ?? null : null,
+            checkIn: checkIn ?? null,
+            checkOut: checkOut ?? null,
+            status: status ?? ''
+          })
         }
-
-        if (checkOut) {
-          checkOut = checkOut.type === checkOut_KEY ? checkOut.time : null
-        }
-
-
-        outputArr.push({
-          date: format(day, 'yyyy-MM-dd'),
-          isLate: lateInMinutes > 20,
-          dayOfWork: dayOfWork ? dayOfWork[0] ?? null : null,
-          checkIn: checkIn ?? null,
-          checkOut: checkOut ?? null,
-          status: status ?? ''
-        })
       }
+
+      return ctx.send(
+        {
+          ok: true,
+          entries: outputArr,
+          pagination: pagination,
+          message: 'executed successfully !'
+        }
+      )
+
+    }catch (e) {
+      throw new ApplicationError(`${e}`);
     }
 
-    return ctx.send(
-      {
-        ok: true,
-        entries: outputArr,
-        pagination: pagination,
-        message: 'executed successfully !'
-      }
-    )
   },
 
   async recentActions(ctx) {
