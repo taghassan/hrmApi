@@ -321,10 +321,10 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
             checkIn = checkIn.type === checkIn_KEY ? checkIn.time : null
           } else {
 
-            if (dayOfWork[0] && dayOfWork[0].isWorkingDay) {
+            if (dayOfWork && dayOfWork[0] && dayOfWork[0].isWorkingDay) {
 
               status = 'absent'
-            } else if (dayOfWork[0] && dayOfWork[0].isWeekEnd) {
+            } else if (dayOfWork && dayOfWork[0] && dayOfWork[0].isWeekEnd) {
 
               status = 'WeekEnd'
             } else {
