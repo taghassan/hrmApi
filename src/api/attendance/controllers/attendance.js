@@ -290,7 +290,7 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
 
                   const endTime = parse(`${format(checkIn.date, 'yyyy-MM-dd')} ${checkIn.time}`, 'yyyy-MM-dd HH:mm:ss.SSS', new Date());
                   const startTime = parse(`${format(day, 'yyyy-MM-dd')} ${dayOfWork[0].start_at}`, 'yyyy-MM-dd HH:mm:ss.SSS', new Date());
-                  return {startTime, endTime}
+                 
                   //
                   let difference = differenceInMilliseconds(endTime, startTime);
                   // let difference =0
@@ -303,18 +303,6 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
                   let differenceInSeconds = Math.floor(difference / 1000);
                   let differenceInMinutes = Math.floor(differenceInSeconds / 60);
                   let hrs = Math.floor(differenceInSeconds / 3600);
-
-                  // console.log(`****************************************************`);
-                  // console.log("day",day);
-                  // console.log("differenceInSeconds",differenceInSeconds);
-                  // console.log("differenceInMinutes",differenceInMinutes);
-                  // console.log("hrs",hrs);
-                  // console.log("startTime", `${startTime}`.split('T'));
-                  // console.log("endTime",`${endTime}`.split('T'));
-                  // console.log("dayOfWork start ",`${dayOfWork[0].start_at}`.split('T'));
-                  // console.log(`****************************************************`);
-                  //
-                  //
 
                   if (differenceInMinutes > 20) {
                     status = 'attendOnLate'
