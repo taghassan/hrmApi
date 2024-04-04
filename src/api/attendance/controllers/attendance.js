@@ -344,7 +344,7 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
           outputArr.push({
             date: format(day, 'yyyy-MM-dd'),
             isLate: lateInMinutes > 20,
-            // dayOfWork: dayOfWork ? dayOfWork[0] ?? null : null,
+            dayOfWork: dayOfWork ? dayOfWork[0] ?? null : null,
             checkIn: checkIn ?? null,
             checkOut: checkOut ?? null,
             status: status ?? ''
