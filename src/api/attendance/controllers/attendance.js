@@ -232,7 +232,7 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
 
       const {results, pagination} = await strapi
         .service("api::attendance.attendance").find(sanitizedQueryParams)
-return {results, pagination}
+
       const outputArr = [];
       // for (const entry of results) {
       //
@@ -257,10 +257,11 @@ return {results, pagination}
 
         if (format(day, 'yyyy-MM-dd') <= format(now, 'yyyy-MM-dd')) {
 
-          const todayCheckInAttendance = results.filter(attendance => (attendance.date && format(attendance.date, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd')) && attendance.type === `${checkIn_KEY}`)
-          const todayCheckOutAttendance = results.filter(attendance => (attendance.date && format(attendance.date, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd')) && attendance.type === `${checkOut_KEY}`)
+          const todayCheckInAttendance = results.filter(attendance => attendance.type === `${checkIn_KEY}`)
 
+          const todayCheckOutAttendance = results.filter(attendance => attendance.type === `${checkOut_KEY}`)
 
+return {todayCheckInAttendance,todayCheckOutAttendance}
           let checkIn = todayCheckInAttendance.sort(applySortByTime)[0]
           let checkOut = todayCheckOutAttendance.sort(applySortByTime)[todayCheckOutAttendance.length - 1]
 
