@@ -256,7 +256,7 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
         /**********************************************************/
 
         if (format(day, 'yyyy-MM-dd') <= format(now, 'yyyy-MM-dd')) {
-return results.filter(attendance=>attendance.date==="2024-04-01")
+return results.filter(attendance=>attendance.date && attendance.date==="2024-04-02")
           const todayCheckInAttendance = results.filter(attendance => {
 
 
