@@ -254,10 +254,6 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
         /**********************************************************/
         /** check is past  **/
         /**********************************************************/
-        const todayCheckInAttendance1 = results.filter(attendance => (attendance.date && format(attendance.date, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd')) ) ?? null
-        const todayCheckOutAttendance1 = results.filter(attendance => (attendance.date && format(attendance.date, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd')) )?? null
-
-        return  {todayCheckInAttendance1,todayCheckOutAttendance1,results, pagination,allDaysInMonth}
 
         if (format(day, 'yyyy-MM-dd') <= format(now, 'yyyy-MM-dd')) {
 
@@ -357,6 +353,9 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
       )
 
     }catch (e) {
+      console.log(`****************************************************`);
+      console.log(e);
+      console.log(`****************************************************`);
       throw new ApplicationError(`${e}`);
     }
 
