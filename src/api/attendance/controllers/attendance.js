@@ -258,9 +258,9 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
         if (format(day, 'yyyy-MM-dd') <= format(now, 'yyyy-MM-dd')) {
 
           const todayCheckInAttendance = results.filter(attendance => attendance.date && format(attendance.date, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd') && attendance.type === `${checkIn_KEY}`)
-
+          return {todayCheckInAttendance:todayCheckInAttendance}
           const todayCheckOutAttendance = results.filter(attendance => attendance.date && format(attendance.date, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd') && attendance.type === `${checkOut_KEY}`)
-
+return {todayCheckOutAttendance:todayCheckOutAttendance}
           let checkIn = todayCheckInAttendance.sort(applySortByTime)[0]
           let checkOut = todayCheckOutAttendance.sort(applySortByTime)[todayCheckOutAttendance.length - 1]
 
