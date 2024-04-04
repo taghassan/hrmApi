@@ -192,7 +192,7 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
 
   async attendanceHistory(ctx) {
 
-    // try{
+    try{
 
 
       const {from, to} = ctx.request.query
@@ -358,9 +358,10 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
         }
       )
 
-    // }catch (e) {
-    //   throw new ApplicationError(`${e}`);
-    // }
+    }catch (e) {
+      throw e
+      // throw new ApplicationError(`${e}`);
+    }
 
   },
 
