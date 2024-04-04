@@ -334,7 +334,11 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
           }
 
           if (checkOut) {
-            checkOut = checkOut.type === checkOut_KEY ? checkOut.time : null
+           try{
+             checkOut = checkOut.type === checkOut_KEY ? checkOut.time : null
+           }catch (e) {
+             throw new ApplicationError(`${e}`);
+           }
           }
 
 
@@ -359,8 +363,7 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
       )
 
     }catch (e) {
-      throw e
-      // throw new ApplicationError(`${e}`);
+      throw new ApplicationError(`${e}`);
     }
 
   },
