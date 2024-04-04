@@ -282,9 +282,9 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
 
               if (dayOfWork[0] && dayOfWork[0].isWorkingDay) {
 
-                // const endTime = parse(`${format(checkIn.date, 'yyyy-MM-dd')} ${checkIn.time}`, 'yyyy-MM-dd HH:mm:ss.SSS', new Date());
-                // const startTime = parse(`${format(day, 'yyyy-MM-dd')} ${dayOfWork[0].start_at}`, 'yyyy-MM-dd HH:mm:ss.SSS', new Date());
-                //
+                const endTime = parse(`${format(checkIn.date, 'yyyy-MM-dd')} ${checkIn.time}`, 'yyyy-MM-dd HH:mm:ss.SSS', new Date());
+                const startTime = parse(`${format(day, 'yyyy-MM-dd')} ${dayOfWork[0].start_at}`, 'yyyy-MM-dd HH:mm:ss.SSS', new Date());
+                return {startTime,endTime}
                 //
                 // let difference = differenceInMilliseconds(endTime, startTime);
                 let difference =0
