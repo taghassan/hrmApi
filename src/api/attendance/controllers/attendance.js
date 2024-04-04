@@ -282,6 +282,8 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
 
               if (dayOfWork[0] && dayOfWork[0].isWorkingDay) {
 
+                if(this.isValidTime(`${dayOfWork[0].start_at}`)){
+
                 const endTime = parse(`${format(checkIn.date, 'yyyy-MM-dd')} ${checkIn.time}`, 'yyyy-MM-dd HH:mm:ss.SSS', new Date());
                 const startTime = parse(`${format(day, 'yyyy-MM-dd')} ${dayOfWork[0].start_at}`, 'yyyy-MM-dd HH:mm:ss.SSS', new Date());
                 return {startTime,endTime}
@@ -316,6 +318,7 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
 
                 lateInMinutes = differenceInMinutes
 
+                }
               }
 
             }
@@ -365,6 +368,12 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
       throw new ApplicationError(`${e}`);
     }
 
+  },
+
+  isValidTime(timeString) {
+    const timePattern = /^(?:[01]\d|2[0-3]):(?:[0-5]\d):(?:[0-5]\d)\.\d{3}$/;
+
+    return timePattern.test(timeString);
   },
 
   async recentActions(ctx) {
