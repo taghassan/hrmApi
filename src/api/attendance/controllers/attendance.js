@@ -232,7 +232,7 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
 
       const {results, pagination} = await strapi
         .service("api::attendance.attendance").find(sanitizedQueryParams)
-return  {results, pagination}
+
       const outputArr = [];
       // for (const entry of results) {
       //
@@ -295,17 +295,6 @@ return  {results, pagination}
                 let differenceInMinutes = Math.floor(differenceInSeconds / 60);
                 let hrs = Math.floor(differenceInSeconds / 3600);
 
-                // console.log(`****************************************************`);
-                // console.log("day",day);
-                // console.log("differenceInSeconds",differenceInSeconds);
-                // console.log("differenceInMinutes",differenceInMinutes);
-                // console.log("hrs",hrs);
-                // console.log("startTime", `${startTime}`.split('T'));
-                // console.log("endTime",`${endTime}`.split('T'));
-                // console.log("dayOfWork start ",`${dayOfWork[0].start_at}`.split('T'));
-                // console.log(`****************************************************`);
-                //
-                //
 
                 if (differenceInMinutes > 20) {
                   status = 'attendOnLate'
@@ -332,6 +321,8 @@ return  {results, pagination}
               status = 'notWorkingDay'
             }
           }
+
+          return  {results, pagination}
 
           if (checkOut) {
 
