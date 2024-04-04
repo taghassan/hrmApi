@@ -261,13 +261,17 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
 
           for (const attendance of results) {
 
-            if(attendance.date && format(attendance.date, 'yyyy-MM-dd') === `${format(day, 'yyyy-MM-dd')}` && attendance.type === `${checkIn_KEY}`){
-              todayCheckInAttendance.push(attendance)
-            }
+       try {
+         if(attendance.date && format(attendance.date, 'yyyy-MM-dd') === `${format(day, 'yyyy-MM-dd')}` && attendance.type === `${checkIn_KEY}`){
+           todayCheckInAttendance.push(attendance)
+         }
 
-            if(attendance.date && format(attendance.date, 'yyyy-MM-dd') === `${format(day, 'yyyy-MM-dd')}` && attendance.type === `${checkOut_KEY}`){
-              todayCheckOutAttendance.push(attendance)
-            }
+         if(attendance.date && format(attendance.date, 'yyyy-MM-dd') === `${format(day, 'yyyy-MM-dd')}` && attendance.type === `${checkOut_KEY}`){
+           todayCheckOutAttendance.push(attendance)
+         }
+       }catch (e) {
+         return e
+       }
 
           }
 
