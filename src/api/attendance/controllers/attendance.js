@@ -255,12 +255,26 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
         /** check is past  **/
         /**********************************************************/
 
+        let todayCheckInAttendance=[]
+        let todayCheckOutAttendance=[]
         if (format(day, 'yyyy-MM-dd') <= format(now, 'yyyy-MM-dd')) {
 
-          const todayCheckInAttendance = results.filter(attendance => attendance.date && format(attendance.date, 'yyyy-MM-dd') === `${format(day, 'yyyy-MM-dd')}` && attendance.type === `${checkIn_KEY}`)
-          return {todayCheckInAttendance:todayCheckInAttendance}
-          const todayCheckOutAttendance = results.filter(attendance => attendance.date && format(attendance.date, 'yyyy-MM-dd') === `${format(day, 'yyyy-MM-dd')}` && attendance.type === `${checkOut_KEY}`)
-return {todayCheckOutAttendance:todayCheckOutAttendance}
+          for (const attendance of results) {
+
+            if(attendance.date && format(attendance.date, 'yyyy-MM-dd') === `${format(day, 'yyyy-MM-dd')}` && attendance.type === `${checkIn_KEY}`){
+              todayCheckInAttendance.push(attendance)
+            }
+
+            if(attendance.date && format(attendance.date, 'yyyy-MM-dd') === `${format(day, 'yyyy-MM-dd')}` && attendance.type === `${checkOut_KEY}`){
+              todayCheckOutAttendance.push(attendance)
+            }
+
+          }
+
+          return {todayCheckOutAttendance,todayCheckInAttendance}
+
+
+
           let checkIn = todayCheckInAttendance.sort(applySortByTime)[0]
           let checkOut = todayCheckOutAttendance.sort(applySortByTime)[todayCheckOutAttendance.length - 1]
 
