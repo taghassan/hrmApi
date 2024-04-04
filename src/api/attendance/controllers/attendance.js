@@ -192,7 +192,7 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
 
   async attendanceHistory(ctx) {
 
-    try{
+    try {
 
 
       const {from, to} = ctx.request.query
@@ -260,8 +260,8 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
           // const todayCheckInAttendance = results.filter(attendance => (attendance.date && format(`${attendance.date}`, 'yyyy-MM-dd') === format(`${day}`, 'yyyy-MM-dd')) && attendance.type === `${checkIn_KEY}`)
           // const todayCheckOutAttendance = results.filter(attendance => (attendance.date && format(`${attendance.date}`, 'yyyy-MM-dd') === format(`${day}`, 'yyyy-MM-dd')) && attendance.type === `${checkOut_KEY}`)
 
-          const todayCheckInAttendance =results
-          const todayCheckOutAttendance =results
+          const todayCheckInAttendance = results
+          const todayCheckOutAttendance = results
 
           let checkIn = todayCheckInAttendance.sort(applySortByTime)[0]
           let checkOut = todayCheckOutAttendance.sort(applySortByTime)[todayCheckOutAttendance.length - 1]
@@ -270,7 +270,7 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
 
           let dayOfWork = null
 
-          dayOfWork =userWithShift && userWithShift.shift? userWithShift.shift.days.filter(shiftDay => shiftDay.day.toLowerCase() === day.toLocaleString('en-us', {weekday: 'long'}).toLowerCase()):null
+          dayOfWork = userWithShift && userWithShift.shift ? userWithShift.shift.days.filter(shiftDay => shiftDay.day.toLowerCase() === day.toLocaleString('en-us', {weekday: 'long'}).toLowerCase()) : null
 
 
           if (checkIn) {
@@ -282,43 +282,49 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
 
               if (dayOfWork[0] && dayOfWork[0].isWorkingDay) {
 
-                if(this.isValidTime(`${dayOfWork[0].start_at}`)){
 
-                const endTime = parse(`${format(checkIn.date, 'yyyy-MM-dd')} ${checkIn.time}`, 'yyyy-MM-dd HH:mm:ss.SSS', new Date());
-                const startTime = parse(`${format(day, 'yyyy-MM-dd')} ${dayOfWork[0].start_at}`, 'yyyy-MM-dd HH:mm:ss.SSS', new Date());
-                return {startTime,endTime}
-                //
-                // let difference = differenceInMilliseconds(endTime, startTime);
-                let difference =0
-                // Handle cases where endTime is earlier than startTime (i.e., it's on the next day)
-                if (difference < 0) {
-                  difference += 24 * 60 * 60 * 1000; // Add 24 hours in milliseconds
+                /**********************************************************/
+                /**   **/
+                /**********************************************************/
+                try {
+
+                  const endTime = parse(`${format(checkIn.date, 'yyyy-MM-dd')} ${checkIn.time}`, 'yyyy-MM-dd HH:mm:ss.SSS', new Date());
+                  const startTime = parse(`${format(day, 'yyyy-MM-dd')} ${dayOfWork[0].start_at}`, 'yyyy-MM-dd HH:mm:ss.SSS', new Date());
+                  return {startTime, endTime}
+                  //
+                  let difference = differenceInMilliseconds(endTime, startTime);
+                  // let difference =0
+                  // Handle cases where endTime is earlier than startTime (i.e., it's on the next day)
+                  if (difference < 0) {
+                    difference += 24 * 60 * 60 * 1000; // Add 24 hours in milliseconds
+                  }
+
+
+                  let differenceInSeconds = Math.floor(difference / 1000);
+                  let differenceInMinutes = Math.floor(differenceInSeconds / 60);
+                  let hrs = Math.floor(differenceInSeconds / 3600);
+
+                  // console.log(`****************************************************`);
+                  // console.log("day",day);
+                  // console.log("differenceInSeconds",differenceInSeconds);
+                  // console.log("differenceInMinutes",differenceInMinutes);
+                  // console.log("hrs",hrs);
+                  // console.log("startTime", `${startTime}`.split('T'));
+                  // console.log("endTime",`${endTime}`.split('T'));
+                  // console.log("dayOfWork start ",`${dayOfWork[0].start_at}`.split('T'));
+                  // console.log(`****************************************************`);
+                  //
+                  //
+
+                  if (differenceInMinutes > 20) {
+                    status = 'attendOnLate'
+                  }
+
+                  lateInMinutes = differenceInMinutes
+                } catch (e) {
+
                 }
 
-
-                let differenceInSeconds = Math.floor(difference / 1000);
-                let differenceInMinutes = Math.floor(differenceInSeconds / 60);
-                let hrs = Math.floor(differenceInSeconds / 3600);
-
-                // console.log(`****************************************************`);
-                // console.log("day",day);
-                // console.log("differenceInSeconds",differenceInSeconds);
-                // console.log("differenceInMinutes",differenceInMinutes);
-                // console.log("hrs",hrs);
-                // console.log("startTime", `${startTime}`.split('T'));
-                // console.log("endTime",`${endTime}`.split('T'));
-                // console.log("dayOfWork start ",`${dayOfWork[0].start_at}`.split('T'));
-                // console.log(`****************************************************`);
-                //
-                //
-
-                if (differenceInMinutes > 20) {
-                  status = 'attendOnLate'
-                }
-
-                lateInMinutes = differenceInMinutes
-
-                }
               }
 
             }
@@ -364,16 +370,10 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
         }
       )
 
-    }catch (e) {
+    } catch (e) {
       throw new ApplicationError(`${e}`);
     }
 
-  },
-
-  isValidTime(timeString) {
-    const timePattern = /^(?:[01]\d|2[0-3]):(?:[0-5]\d):(?:[0-5]\d)\.\d{3}$/;
-
-    return timePattern.test(timeString);
   },
 
   async recentActions(ctx) {
@@ -410,8 +410,8 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
         }
       ]
     }
-    sanitizedQueryParams.sort= {date: 'desc'}
-    sanitizedQueryParams.populate= '*'
+    sanitizedQueryParams.sort = {date: 'desc'}
+    sanitizedQueryParams.populate = '*'
 
     const {results, pagination} = await strapi
       .service("api::attendance.attendance").find(sanitizedQueryParams)
@@ -423,8 +423,8 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
         {
           date: entry.date,
           type: entry.type,
-          branch:entry.branch?entry.branch.name:'',
-          branchId:entry.branch?entry.branch.id:null,
+          branch: entry.branch ? entry.branch.name : '',
+          branchId: entry.branch ? entry.branch.id : null,
           check_in_time: entry.type === checkIn_KEY ? entry.time : null,
           check_out_time: entry.type === checkOut_KEY ? entry.time : null
         }
