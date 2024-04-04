@@ -234,26 +234,17 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
         .service("api::attendance.attendance").find(sanitizedQueryParams)
 
       const outputArr = [];
-      for (const entry of results) {
-
-        outputArr.push(
-          {
-            date: entry.date,
-            type: entry.type,
-            check_in_time: entry.type === 'checkIn' ? entry.time : null,
-            check_out_time: entry.type === 'checkOut' ? entry.time : null
-          }
-        )
-      }
-
-      return ctx.send(
-        {
-          ok: true,
-          entries: outputArr,
-          pagination: pagination,
-          message: 'executed successfully !'
-        }
-      )
+      // for (const entry of results) {
+      //
+      //   outputArr.push(
+      //     {
+      //       date: entry.date,
+      //       type: entry.type,
+      //       check_in_time: entry.type === 'checkIn' ? entry.time : null,
+      //       check_out_time: entry.type === 'checkOut' ? entry.time : null
+      //     }
+      //   )
+      // }
 
 
       for (const day of allDaysInMonth.reverse()) {
@@ -291,12 +282,12 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
 
               if (dayOfWork[0] && dayOfWork[0].isWorkingDay) {
 
-                const endTime = parse(`${format(checkIn.date, 'yyyy-MM-dd')} ${checkIn.time}`, 'yyyy-MM-dd HH:mm:ss.SSS', new Date());
-                const startTime = parse(`${format(day, 'yyyy-MM-dd')} ${dayOfWork[0].start_at}`, 'yyyy-MM-dd HH:mm:ss.SSS', new Date());
-
-
-                let difference = differenceInMilliseconds(endTime, startTime);
-
+                // const endTime = parse(`${format(checkIn.date, 'yyyy-MM-dd')} ${checkIn.time}`, 'yyyy-MM-dd HH:mm:ss.SSS', new Date());
+                // const startTime = parse(`${format(day, 'yyyy-MM-dd')} ${dayOfWork[0].start_at}`, 'yyyy-MM-dd HH:mm:ss.SSS', new Date());
+                //
+                //
+                // let difference = differenceInMilliseconds(endTime, startTime);
+                let difference =0
                 // Handle cases where endTime is earlier than startTime (i.e., it's on the next day)
                 if (difference < 0) {
                   difference += 24 * 60 * 60 * 1000; // Add 24 hours in milliseconds
