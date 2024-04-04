@@ -272,7 +272,7 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
 
           dayOfWork = userWithShift && userWithShift.shift ? userWithShift.shift.days.filter(shiftDay => shiftDay.day.toLowerCase() === day.toLocaleString('en-us', {weekday: 'long'}).toLowerCase()) : null
 
-          return userWithShift.shift.days
+          // return userWithShift.shift.days
 
           if (checkIn) {
 
