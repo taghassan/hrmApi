@@ -280,7 +280,7 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
 
             if (mapUserWithShift.shift && userWithShift.shift.days && dayOfWork) {
 
-              if (dayOfWork[0] && dayOfWork[0].isWorkingDay) {
+              if (dayOfWork[0] && dayOfWork[0].isWorkingDay && dayOfWork[0].isWorkingDay.start_at && checkIn && checkIn.time && checkIn.date) {
 
 
                 /**********************************************************/
