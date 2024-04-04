@@ -311,7 +311,7 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
 
                   lateInMinutes = differenceInMinutes
                 } catch (e) {
-
+                  lateInMinutes=-99
                 }
 
               }
