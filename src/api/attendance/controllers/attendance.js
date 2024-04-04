@@ -254,7 +254,7 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
         /**********************************************************/
         /** check is past  **/
         /**********************************************************/
-
+return format(day, 'yyyy-MM-dd') <= format(now, 'yyyy-MM-dd')
         if (format(day, 'yyyy-MM-dd') <= format(now, 'yyyy-MM-dd')) {
 
           // const todayCheckInAttendance = results.filter(attendance => (attendance.date && format(`${attendance.date}`, 'yyyy-MM-dd') === format(`${day}`, 'yyyy-MM-dd')) && attendance.type === `${checkIn_KEY}`)
