@@ -270,7 +270,7 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
            todayCheckOutAttendance.push(attendance)
          }
        }catch (e) {
-         return e
+         throw e
        }
 
           }
