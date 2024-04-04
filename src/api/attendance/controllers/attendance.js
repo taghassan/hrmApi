@@ -234,17 +234,26 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
         .service("api::attendance.attendance").find(sanitizedQueryParams)
 
       const outputArr = [];
-      // for (const entry of results) {
-      //
-      //   outputArr.push(
-      //     {
-      //       date: entry.date,
-      //       type: entry.type,
-      //       check_in_time: entry.type === 'checkIn' ? entry.time : null,
-      //       check_out_time: entry.type === 'checkOut' ? entry.time : null
-      //     }
-      //   )
-      // }
+      for (const entry of results) {
+
+        outputArr.push(
+          {
+            date: entry.date,
+            type: entry.type,
+            check_in_time: entry.type === 'checkIn' ? entry.time : null,
+            check_out_time: entry.type === 'checkOut' ? entry.time : null
+          }
+        )
+      }
+
+      return ctx.send(
+        {
+          ok: true,
+          entries: outputArr,
+          pagination: pagination,
+          message: 'executed successfully !'
+        }
+      )
 
 
       for (const day of allDaysInMonth.reverse()) {
@@ -254,7 +263,7 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
         /**********************************************************/
         /** check is past  **/
         /**********************************************************/
-return format(day, 'yyyy-MM-dd') <= format(now, 'yyyy-MM-dd')
+
         if (format(day, 'yyyy-MM-dd') <= format(now, 'yyyy-MM-dd')) {
 
           // const todayCheckInAttendance = results.filter(attendance => (attendance.date && format(`${attendance.date}`, 'yyyy-MM-dd') === format(`${day}`, 'yyyy-MM-dd')) && attendance.type === `${checkIn_KEY}`)
