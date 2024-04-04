@@ -255,29 +255,10 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
         /** check is past  **/
         /**********************************************************/
 
-        let todayCheckInAttendance=[]
-        let todayCheckOutAttendance=[]
         if (format(day, 'yyyy-MM-dd') <= format(now, 'yyyy-MM-dd')) {
 
-          for (const attendance of results) {
-
-       try {
-         if(attendance.date && format(attendance.date, 'yyyy-MM-dd') === `${format(day, 'yyyy-MM-dd')}` && attendance.type === `${checkIn_KEY}`){
-           todayCheckInAttendance.push(attendance)
-         }
-
-         if(attendance.date && format(attendance.date, 'yyyy-MM-dd') === `${format(day, 'yyyy-MM-dd')}` && attendance.type === `${checkOut_KEY}`){
-           todayCheckOutAttendance.push(attendance)
-         }
-       }catch (e) {
-         throw e
-       }
-
-          }
-
-          return {todayCheckOutAttendance,todayCheckInAttendance}
-
-
+          const todayCheckInAttendance = results.filter(attendance => (attendance.date && format(attendance.date, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd')) && attendance.type === `${checkIn_KEY}`)
+          const todayCheckOutAttendance = results.filter(attendance => (attendance.date && format(attendance.date, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd')) && attendance.type === `${checkOut_KEY}`)
 
           let checkIn = todayCheckInAttendance.sort(applySortByTime)[0]
           let checkOut = todayCheckOutAttendance.sort(applySortByTime)[todayCheckOutAttendance.length - 1]
@@ -314,6 +295,17 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
                 let differenceInMinutes = Math.floor(differenceInSeconds / 60);
                 let hrs = Math.floor(differenceInSeconds / 3600);
 
+                // console.log(`****************************************************`);
+                // console.log("day",day);
+                // console.log("differenceInSeconds",differenceInSeconds);
+                // console.log("differenceInMinutes",differenceInMinutes);
+                // console.log("hrs",hrs);
+                // console.log("startTime", `${startTime}`.split('T'));
+                // console.log("endTime",`${endTime}`.split('T'));
+                // console.log("dayOfWork start ",`${dayOfWork[0].start_at}`.split('T'));
+                // console.log(`****************************************************`);
+                //
+                //
 
                 if (differenceInMinutes > 20) {
                   status = 'attendOnLate'
@@ -341,12 +333,8 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
             }
           }
 
-
-
           if (checkOut) {
-
-             checkOut = checkOut.type === checkOut_KEY ? checkOut.time : null
-
+            checkOut = checkOut.type === checkOut_KEY ? checkOut.time : null
           }
 
 
@@ -775,5 +763,4 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
     return await strapi.entityService.findMany("api::attendance.attendance", filter)
   }
 }));
-
 
