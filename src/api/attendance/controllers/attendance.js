@@ -220,8 +220,6 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
   async attendanceHistory(ctx) {
 
     try {
-
-
       const {from, to} = ctx.request.query
 
       /**********************************************************/
@@ -232,12 +230,10 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
       const lastDayOfMonth = to ?? endOfMonth(now);
       const allDaysInMonth = eachDayOfInterval({start: firstDayOfMonth, end: lastDayOfMonth});
 
-
       const user = ctx.state.user;
       const userWithShift = await getUserShift(user)
       const mapUserWithShift = mapUserWithSift(userWithShift)
       const sanitizedQueryParams = await this.sanitizeQuery(ctx);
-
 
       sanitizedQueryParams.filters = {
         $and: [
@@ -256,12 +252,10 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
       }
       sanitizedQueryParams.populate = '*'
 
-
       const {results, pagination} = await strapi
         .service("api::attendance.attendance").find(sanitizedQueryParams)
 
       const outputArr = [];
-
 
       for (const day of allDaysInMonth.reverse()) {
 
@@ -279,7 +273,6 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
           let checkIn = todayCheckInAttendance.sort(applySortByTime)[0]
           let checkOut = todayCheckOutAttendance.sort(applySortByTime)[todayCheckOutAttendance.length - 1]
 
-
           let dayOfWork = null
 
           dayOfWork = userWithShift && userWithShift.shift ? userWithShift.shift.days.filter(shiftDay => shiftDay.day.toLowerCase() === day.toLocaleString('en-us', {weekday: 'long'}).toLowerCase()) : null
@@ -288,13 +281,9 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
 
           if (checkIn) {
 
-
             status = 'attendOnTime'
 
-
-
               if (dayOfWork&& dayOfWork[0]  && dayOfWork[0].start_at && checkIn && checkIn.time && checkIn.date) {
-
 
                 /**********************************************************/
                 /**   **/
@@ -316,9 +305,6 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
 
               }
 
-
-
-
             checkIn = checkIn.type === checkIn_KEY ? checkIn.time : null
           } else {
 
@@ -338,7 +324,6 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
             checkOut = checkOut.type === checkOut_KEY ? checkOut.time : null
           }
 
-
           outputArr.push({
             date: format(day, 'yyyy-MM-dd'),
             isLate: lateInMinutes > 20,
@@ -346,15 +331,13 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
             // dayOfWork: dayOfWork ? dayOfWork[0] ?? null : null,
             // dayOfWork: dayOfWork ? dayOfWork[0] ?? null : null,
 
-
             lateInMinutes: lateInMinutes,
             dayOfWork: dayOfWork ? dayOfWork[0].day ?? null : null,
             dayOfWorkStartAt: dayOfWork ? dayOfWork[0].start_at ?? null : null,
             dayOfWorkEndAt: dayOfWork ? dayOfWork[0].start_at ?? null : null,
             dayOfWorkIsWorkingDay: dayOfWork ? dayOfWork[0].isWorkingDay ?? null : null,
             dayOfWorkIsWeekEnd: dayOfWork ? dayOfWork[0].isWeekEnd ?? null : null,
-
-
+            
             checkIn: checkIn ?? null,
             checkOut: checkOut ?? null,
             status: status ?? ''
