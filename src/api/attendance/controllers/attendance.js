@@ -337,7 +337,7 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
             dayOfWorkEndAt: dayOfWork ? dayOfWork[0].start_at ?? null : null,
             dayOfWorkIsWorkingDay: dayOfWork ? dayOfWork[0].isWorkingDay ?? null : null,
             dayOfWorkIsWeekEnd: dayOfWork ? dayOfWork[0].isWeekEnd ?? null : null,
-            
+
             checkIn: checkIn ?? null,
             checkOut: checkOut ?? null,
             status: status ?? ''
@@ -760,29 +760,38 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
   },
   getDiff(date1,time1,date2,time2) {
 
-    const endTime = parse(`${format(date1, 'yyyy-MM-dd')} ${time1}`, 'yyyy-MM-dd HH:mm:ss.SSS', new Date());
-    const startTime = parse(`${format(date2, 'yyyy-MM-dd')} ${time2}`, 'yyyy-MM-dd HH:mm:ss.SSS', new Date());
+    try{
+      const endTime = parse(`${format(date1, 'yyyy-MM-dd')} ${time1}`, 'yyyy-MM-dd HH:mm:ss.SSS', new Date());
+      const startTime = parse(`${format(date2, 'yyyy-MM-dd')} ${time2}`, 'yyyy-MM-dd HH:mm:ss.SSS', new Date());
 
-    //
-    let difference = differenceInMilliseconds(endTime, startTime);
-    // let difference =0
-    // Handle cases where endTime is earlier than startTime (i.e., it's on the next day)
-    if (difference < 0) {
-      difference += 24 * 60 * 60 * 1000; // Add 24 hours in milliseconds
+      //
+      let difference = differenceInMilliseconds(endTime, startTime);
+      // let difference =0
+      // Handle cases where endTime is earlier than startTime (i.e., it's on the next day)
+      if (difference < 0) {
+        difference += 24 * 60 * 60 * 1000; // Add 24 hours in milliseconds
+      }
+
+      if(startTime>endTime){
+        difference=  difference*-1
+      }
+
+      let differenceInSeconds = Math.floor(difference / 1000);
+      let differenceInMinutes = Math.floor(differenceInSeconds / 60);
+      let hrs = Math.floor(differenceInSeconds / 3600);
+      return {
+        differenceInSeconds,
+        differenceInMinutes,
+        differenceInhrs:hrs,
+      }
+    }catch (e){
+      return {
+        differenceInSeconds:0,
+        differenceInMinutes:0,
+        differenceInhrs:0,
+      }
     }
 
-    if(startTime>endTime){
-      difference=  difference*-1
-    }
-
-    let differenceInSeconds = Math.floor(difference / 1000);
-    let differenceInMinutes = Math.floor(differenceInSeconds / 60);
-    let hrs = Math.floor(differenceInSeconds / 3600);
-    return {
-      differenceInSeconds,
-      differenceInMinutes,
-      differenceInhrs:hrs,
-    }
   }
 }));
 
