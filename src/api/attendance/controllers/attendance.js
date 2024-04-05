@@ -267,8 +267,8 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
         let lateInMinutes = 0
         if (format(day, 'yyyy-MM-dd') <= format(now, 'yyyy-MM-dd')) {
 
-          const todayCheckInAttendance = results.filter(attendance => (attendance.date && format(`${attendance.date}`, 'yyyy-MM-dd') === format(`${day}`, 'yyyy-MM-dd')) && attendance.type === `${checkIn_KEY}`)
-          const todayCheckOutAttendance = results.filter(attendance => (attendance.date && format(`${attendance.date}`, 'yyyy-MM-dd') === format(`${day}`, 'yyyy-MM-dd')) && attendance.type === `${checkOut_KEY}`)
+
+       const {todayCheckInAttendance,todayCheckOutAttendance}=  this.getToActionsOnDay(results,day)
 
           let checkIn = todayCheckInAttendance.sort(applySortByTime)[0]
           let checkOut = todayCheckOutAttendance.sort(applySortByTime)[todayCheckOutAttendance.length - 1]
@@ -789,6 +789,24 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
         differenceInSeconds:0,
         differenceInMinutes:0,
         differenceInhrs:0,
+      }
+    }
+
+  },
+  getToActionsOnDay(results,day) {
+
+    try{
+      const todayCheckInAttendance = results.filter(attendance => (attendance.date && format(`${attendance.date}`, 'yyyy-MM-dd') === format(`${day}`, 'yyyy-MM-dd')) && attendance.type === `${checkIn_KEY}`)
+      const todayCheckOutAttendance = results.filter(attendance => (attendance.date && format(`${attendance.date}`, 'yyyy-MM-dd') === format(`${day}`, 'yyyy-MM-dd')) && attendance.type === `${checkOut_KEY}`)
+
+      return {
+        todayCheckInAttendance,
+        todayCheckOutAttendance
+      }
+    }catch (e) {
+      return {
+        todayCheckInAttendance:null,
+        todayCheckOutAttendance:null
       }
     }
 
