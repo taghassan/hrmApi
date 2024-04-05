@@ -233,7 +233,7 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
         start: new Date(`${firstDayOfMonth}`),
         end: new Date(`${lastDayOfMonth}`)
       });
-     
+
       const user = ctx.state.user;
       const userWithShift = await getUserShift(user)
       const mapUserWithShift = mapUserWithSift(userWithShift)
@@ -256,14 +256,14 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
       }
       sanitizedQueryParams.populate = '*'
       sanitizedQueryParams.sort = {id: 'desc'}
-      sanitizedQueryParams.pagination = {pageSize: 150}
+      sanitizedQueryParams.pagination = {pageSize: 200}
 
       const {results, pagination} = await strapi
         .service("api::attendance.attendance").find(sanitizedQueryParams)
 
       const outputArr = [];
 
-
+return {results, pagination}
       for (const day of allDaysInMonth.reverse()) {
 
         let status = 'absent'
@@ -769,6 +769,7 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
   getDiff(date1, time1, date2, time2) {
 
     try {
+
       const endTime = parse(`${format(date1, 'yyyy-MM-dd')} ${time1}`, 'yyyy-MM-dd HH:mm:ss.SSS', new Date());
       const startTime = parse(`${format(date2, 'yyyy-MM-dd')} ${time2}`, 'yyyy-MM-dd HH:mm:ss.SSS', new Date());
 
