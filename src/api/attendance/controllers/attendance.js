@@ -270,7 +270,7 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
         .service("api::attendance.attendance").find(sanitizedQueryParams)
 
       const outputArr = [];
-      const outputTest = [];
+
 
       for (const day of allDaysInMonth.reverse()) {
 
@@ -304,8 +304,6 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
               /**********************************************************/
               try {
                 const {differenceInMinutes} = this.getDiff(checkIn.date, checkIn.time, day, dayOfWork[0].start_at)
-
-                outputTest.push(differenceInMinutes)
 
                 if (differenceInMinutes > 20) {
                   status = 'attendOnLate'
@@ -346,7 +344,7 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
 
             // dayOfWork: dayOfWork ? dayOfWork[0] ?? null : null,
             // dayOfWork: dayOfWork ? dayOfWork[0] ?? null : null,
-            outputTest:outputTest,
+
             lateInMinutes: lateInMinutes,
             dayOfWork: dayOfWork ? dayOfWork[0].day ?? null : null,
             dayOfWorkStartAt: dayOfWork ? dayOfWork[0].start_at ?? null : null,
@@ -777,7 +775,7 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
   getDiff(date1, time1, date2, time2) {
 
     try {
-      
+
       date1=new Date(`${date1}`)
       date2=new Date(`${date2}`)
 
