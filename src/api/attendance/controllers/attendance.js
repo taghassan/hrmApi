@@ -226,12 +226,15 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
       /**   **/
       /**********************************************************/
       const now = new Date();
-      const firstDayOfMonth = from ?? startOfMonth(now);
-      const lastDayOfMonth = to ?? endOfMonth(now);
+      let firstDayOfMonth = from ?? startOfMonth(now);
+      let lastDayOfMonth = to ?? endOfMonth(now);
+
+      firstDayOfMonth= new Date(`${firstDayOfMonth}`)
+      lastDayOfMonth= new Date(`${lastDayOfMonth}`)
 
       const allDaysInMonth = eachDayOfInterval({
-        start: new Date(`${firstDayOfMonth}`),
-        end: new Date(`${lastDayOfMonth}`)
+        start: firstDayOfMonth,
+        end: lastDayOfMonth
       });
 
       const user = ctx.state.user;
