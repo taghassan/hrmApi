@@ -123,6 +123,15 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
     const userWithBranch = await getUserBranch(user)
     const currentTime = new Date();
 
+
+    /**********************************************************/
+    /**   **/
+    /**********************************************************/
+    const userWithShift = await getUserShift(user)
+    const mapUserWithShift = mapUserWithSift(userWithShift)
+
+    const dayOfWork = userWithShift && userWithShift.shift && userWithShift.shift.days ? userWithShift.shift.days.filter(shiftDay => shiftDay.day.toLowerCase() === (actionDate ?? currentTime).toLocaleString('en-us', {weekday: 'long'}).toLowerCase()) : null
+
     const entry = await strapi
       .service("api::attendance.attendance")
       .create(
@@ -134,7 +143,12 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
             "user": user.id,
             "branch": userWithBranch && userWithBranch.branch ? userWithBranch.branch.id : null,
             "latitude": current_lat ?? '0.0',
-            "longitude": current_lang ?? '0.0'
+            "longitude": current_lang ?? '0.0',
+            "dayOfWork": dayOfWork && dayOfWork[0] && dayOfWork[0].day ? dayOfWork[0].day : '',
+            "dayOfWorkStartAt": dayOfWork && dayOfWork[0] && dayOfWork[0].start_at ? dayOfWork[0].start_at : '',
+            "dayOfWorkEndAt": dayOfWork && dayOfWork[0] && dayOfWork[0].end_at ? dayOfWork[0].end_at : '',
+            "dayOfWorkIsWorkingDay": dayOfWork && dayOfWork[0] && dayOfWork[0].isWorkingDay ? dayOfWork[0].isWorkingDay : true,
+            "dayOfWorkIsWeekEnd": dayOfWork && dayOfWork[0] && dayOfWork[0].isWeekEnd ? dayOfWork[0].isWeekEnd : false,
           }
         }
       );
@@ -154,6 +168,14 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
     const userWithBranch = await getUserBranch(user)
     const branch = userWithBranch.branch
 
+    /**********************************************************/
+    /**   **/
+    /**********************************************************/
+    const userWithShift = await getUserShift(user)
+    const mapUserWithShift = mapUserWithSift(userWithShift)
+
+    const dayOfWork = userWithShift && userWithShift.shift && userWithShift.shift.days ? userWithShift.shift.days.filter(shiftDay => shiftDay.day.toLowerCase() === (actionDate ?? currentTime).toLocaleString('en-us', {weekday: 'long'}).toLowerCase()) : null
+
     await strapi
       .service("api::attendance.attendance")
       .create(
@@ -165,7 +187,12 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
             "user": user.id,
             "branch": userWithBranch && userWithBranch.branch ? userWithBranch.branch.id : null,
             "latitude": current_lat ?? '0.0',
-            "longitude": current_lang ?? '0.0'
+            "longitude": current_lang ?? '0.0',
+            "dayOfWork": dayOfWork && dayOfWork[0] && dayOfWork[0].day ? dayOfWork[0].day : '',
+            "dayOfWorkStartAt": dayOfWork && dayOfWork[0] && dayOfWork[0].start_at ? dayOfWork[0].start_at : '',
+            "dayOfWorkEndAt": dayOfWork && dayOfWork[0] && dayOfWork[0].end_at ? dayOfWork[0].end_at : '',
+            "dayOfWorkIsWorkingDay": dayOfWork && dayOfWork[0] && dayOfWork[0].isWorkingDay ? dayOfWork[0].isWorkingDay : true,
+            "dayOfWorkIsWeekEnd": dayOfWork && dayOfWork[0] && dayOfWork[0].isWeekEnd ? dayOfWork[0].isWeekEnd : false,
           }
         }
       );
@@ -253,7 +280,6 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
           let checkOut = todayCheckOutAttendance.sort(applySortByTime)[todayCheckOutAttendance.length - 1]
 
 
-
           let dayOfWork = null
 
           dayOfWork = userWithShift && userWithShift.shift ? userWithShift.shift.days.filter(shiftDay => shiftDay.day.toLowerCase() === day.toLocaleString('en-us', {weekday: 'long'}).toLowerCase()) : null
@@ -265,44 +291,32 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
 
             status = 'attendOnTime'
 
-            if (mapUserWithShift.shift && userWithShift.shift.days && dayOfWork) {
 
-              if (dayOfWork[0] && dayOfWork[0].isWorkingDay && dayOfWork[0].isWorkingDay.start_at && checkIn && checkIn.time && checkIn.date) {
+
+              if (dayOfWork&& dayOfWork[0]  && dayOfWork[0].start_at && checkIn && checkIn.time && checkIn.date) {
 
 
                 /**********************************************************/
                 /**   **/
                 /**********************************************************/
                 try {
-
-                  const endTime = parse(`${format(checkIn.date, 'yyyy-MM-dd')} ${checkIn.time}`, 'yyyy-MM-dd HH:mm:ss.SSS', new Date());
-                  const startTime = parse(`${format(day, 'yyyy-MM-dd')} ${dayOfWork[0].start_at}`, 'yyyy-MM-dd HH:mm:ss.SSS', new Date());
-
-                  //
-                  let difference = differenceInMilliseconds(endTime, startTime);
-                  // let difference =0
-                  // Handle cases where endTime is earlier than startTime (i.e., it's on the next day)
-                  if (difference < 0) {
-                    difference += 24 * 60 * 60 * 1000; // Add 24 hours in milliseconds
-                  }
-
-
-                  let differenceInSeconds = Math.floor(difference / 1000);
-                  let differenceInMinutes = Math.floor(differenceInSeconds / 60);
-                  let hrs = Math.floor(differenceInSeconds / 3600);
+                  const {differenceInMinutes}=  this.getDiff(checkIn.date,checkIn.time ,day , dayOfWork[0].start_at)
 
                   if (differenceInMinutes > 20) {
                     status = 'attendOnLate'
                   }
 
                   lateInMinutes = differenceInMinutes
+
                 } catch (e) {
-                  lateInMinutes=-99
+                  lateInMinutes = -99
                 }
+
+              } else {
 
               }
 
-            }
+
 
 
             checkIn = checkIn.type === checkIn_KEY ? checkIn.time : null
@@ -328,14 +342,19 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
           outputArr.push({
             date: format(day, 'yyyy-MM-dd'),
             isLate: lateInMinutes > 20,
-            // lateInMinutes:lateInMinutes,
+
             // dayOfWork: dayOfWork ? dayOfWork[0] ?? null : null,
             // dayOfWork: dayOfWork ? dayOfWork[0] ?? null : null,
-            dayOfWork: dayOfWork ? dayOfWork[0].day ?? null : null,
-            dayOfWorkStartAt: dayOfWork ? dayOfWork[0].start_at ?? null : null,
-            dayOfWorkEndAt: dayOfWork ? dayOfWork[0].start_at ?? null : null,
-            dayOfWorkIsWorkingDay: dayOfWork ? dayOfWork[0].isWorkingDay ?? null : null,
-            dayOfWorkIsWeekEnd: dayOfWork ? dayOfWork[0].isWeekEnd ?? null : null,
+
+
+            // lateInMinutes: lateInMinutes,
+            // dayOfWork: dayOfWork ? dayOfWork[0].day ?? null : null,
+            // dayOfWorkStartAt: dayOfWork ? dayOfWork[0].start_at ?? null : null,
+            // dayOfWorkEndAt: dayOfWork ? dayOfWork[0].start_at ?? null : null,
+            // dayOfWorkIsWorkingDay: dayOfWork ? dayOfWork[0].isWorkingDay ?? null : null,
+            // dayOfWorkIsWeekEnd: dayOfWork ? dayOfWork[0].isWeekEnd ?? null : null,
+
+
             checkIn: checkIn ?? null,
             checkOut: checkOut ?? null,
             status: status ?? ''
@@ -755,6 +774,32 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
 
 
     return await strapi.entityService.findMany("api::attendance.attendance", filter)
+  },
+  getDiff(date1,time1,date2,time2) {
+
+    const endTime = parse(`${format(date1, 'yyyy-MM-dd')} ${time1}`, 'yyyy-MM-dd HH:mm:ss.SSS', new Date());
+    const startTime = parse(`${format(date2, 'yyyy-MM-dd')} ${time2}`, 'yyyy-MM-dd HH:mm:ss.SSS', new Date());
+
+    //
+    let difference = differenceInMilliseconds(endTime, startTime);
+    // let difference =0
+    // Handle cases where endTime is earlier than startTime (i.e., it's on the next day)
+    if (difference < 0) {
+      difference += 24 * 60 * 60 * 1000; // Add 24 hours in milliseconds
+    }
+
+    if(startTime>endTime){
+      difference=  difference*-1
+    }
+
+    let differenceInSeconds = Math.floor(difference / 1000);
+    let differenceInMinutes = Math.floor(differenceInSeconds / 60);
+    let hrs = Math.floor(differenceInSeconds / 3600);
+    return {
+      differenceInSeconds,
+      differenceInMinutes,
+      differenceInhrs:hrs,
+    }
   }
 }));
 
