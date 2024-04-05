@@ -805,8 +805,8 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
       }
     }catch (e) {
       return {
-        todayCheckInAttendance:null,
-        todayCheckOutAttendance:null
+        todayCheckInAttendance:[],
+        todayCheckOutAttendance:[]
       }
     }
 
