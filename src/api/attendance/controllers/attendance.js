@@ -811,12 +811,12 @@ const test=[]
 
     try {
       const date = new Date(`${day}`);
-      const todayCheckInAttendance = (results ?? []).filter(attendance => (attendance.date && format(`${attendance.date}`, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd')) && attendance.type === `${checkIn_KEY}`)
-      const todayCheckOutAttendance = (results ?? []).filter(attendance => (attendance.date && format(`${attendance.date}`, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd')) && attendance.type === `${checkOut_KEY}`)
+      const todayCheckInAttendance = (results ?? []).filter(attendance => (attendance.date && format(new Date(`${attendance.date}`), 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd')) && attendance.type === `${checkIn_KEY}`)
+      const todayCheckOutAttendance = (results ?? []).filter(attendance => (attendance.date && format(new Date(`${attendance.date}`), 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd')) && attendance.type === `${checkOut_KEY}`)
 
       return {
-        todayCheckInAttendance:results,
-        todayCheckOutAttendance:results
+        todayCheckInAttendance:todayCheckInAttendance,
+        todayCheckOutAttendance:todayCheckOutAttendance
       }
     } catch (e) {
       return {
