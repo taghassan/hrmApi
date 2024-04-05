@@ -777,9 +777,10 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
   getDiff(date1, time1, date2, time2) {
 
     try {
+      
+      date1=new Date(`${date1}`)
+      date2=new Date(`${date2}`)
 
-      // date1=new Date(`${date1}`)
-      // date2=new Date(`${date2}`)
       const endTime = parse(`${format(date1, 'yyyy-MM-dd')} ${time1}`, 'yyyy-MM-dd HH:mm:ss.SSS', new Date());
       const startTime = parse(`${format(date2, 'yyyy-MM-dd')} ${time2}`, 'yyyy-MM-dd HH:mm:ss.SSS', new Date());
 
@@ -805,9 +806,9 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
       }
     } catch (e) {
       return {
-        differenceInSeconds: 0,
-        differenceInMinutes: 0,
-        differenceInhrs: 0,
+        differenceInSeconds: -1,
+        differenceInMinutes: -1,
+        differenceInhrs: -1,
       }
     }
 
