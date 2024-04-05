@@ -233,7 +233,7 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
         start: new Date(`${firstDayOfMonth}`),
         end: new Date(`${lastDayOfMonth}`)
       });
-      return {firstDayOfMonth, lastDayOfMonth}
+     
       const user = ctx.state.user;
       const userWithShift = await getUserShift(user)
       const mapUserWithShift = mapUserWithSift(userWithShift)
