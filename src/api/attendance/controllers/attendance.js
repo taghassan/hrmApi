@@ -228,8 +228,12 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
       const now = new Date();
       const firstDayOfMonth = from ?? startOfMonth(now);
       const lastDayOfMonth = to ?? endOfMonth(now);
-      const allDaysInMonth = eachDayOfInterval({start: firstDayOfMonth, end: lastDayOfMonth});
-return {firstDayOfMonth,lastDayOfMonth}
+
+      const allDaysInMonth = eachDayOfInterval({
+        start: new Date(`${firstDayOfMonth}`),
+        end: new Date(`${lastDayOfMonth}`)
+      });
+      return {firstDayOfMonth, lastDayOfMonth}
       const user = ctx.state.user;
       const userWithShift = await getUserShift(user)
       const mapUserWithShift = mapUserWithSift(userWithShift)
@@ -251,8 +255,8 @@ return {firstDayOfMonth,lastDayOfMonth}
         ]
       }
       sanitizedQueryParams.populate = '*'
-      sanitizedQueryParams.sort =   {id: 'desc'}
-      sanitizedQueryParams.pagination =   {pageSize: 150}
+      sanitizedQueryParams.sort = {id: 'desc'}
+      sanitizedQueryParams.pagination = {pageSize: 150}
 
       const {results, pagination} = await strapi
         .service("api::attendance.attendance").find(sanitizedQueryParams)
