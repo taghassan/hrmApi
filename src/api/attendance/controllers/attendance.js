@@ -256,7 +256,7 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
         .service("api::attendance.attendance").find(sanitizedQueryParams)
 
       const outputArr = [];
-      const test=[]
+      const test = []
 
       for (const day of allDaysInMonth.reverse()) {
 
@@ -270,12 +270,11 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
 
           const {todayCheckInAttendance, todayCheckOutAttendance} = this.getToActionsOnDay(results, day)
 
-          // const todayCheckInAttendance = (results??[]).filter(attendance => (attendance.date && format(`${attendance.date}`, 'yyyy-MM-dd') === format(`${day}`, 'yyyy-MM-dd')) && attendance.type === `${checkIn_KEY}`)
-          // const todayCheckOutAttendance =(results??[]).filter(attendance => (attendance.date && format(`${attendance.date}`, 'yyyy-MM-dd') === format(`${day}`, 'yyyy-MM-dd')) && attendance.type === `${checkOut_KEY}`)
-test.push([
-  // format(`${day}`, 'yyyy-MM-dd'),
-  day
-])
+          const date = new Date(`${day}`);
+          test.push([
+            format(date, 'yyyy-MM-dd'),
+            day
+          ])
 
           let checkIn = todayCheckInAttendance.sort(applySortByTime)[0]
           let checkOut = todayCheckOutAttendance.sort(applySortByTime)[todayCheckOutAttendance.length - 1]
@@ -806,8 +805,8 @@ test.push([
   getToActionsOnDay(results, day) {
 
     try {
-      const todayCheckInAttendance = (results??[]).filter(attendance => (attendance.date && format(`${attendance.date}`, 'yyyy-MM-dd') === format(`${day}`, 'yyyy-MM-dd')) && attendance.type === `${checkIn_KEY}`)
-      const todayCheckOutAttendance =(results??[]).filter(attendance => (attendance.date && format(`${attendance.date}`, 'yyyy-MM-dd') === format(`${day}`, 'yyyy-MM-dd')) && attendance.type === `${checkOut_KEY}`)
+      const todayCheckInAttendance = (results ?? []).filter(attendance => (attendance.date && format(`${attendance.date}`, 'yyyy-MM-dd') === format(`${day}`, 'yyyy-MM-dd')) && attendance.type === `${checkIn_KEY}`)
+      const todayCheckOutAttendance = (results ?? []).filter(attendance => (attendance.date && format(`${attendance.date}`, 'yyyy-MM-dd') === format(`${day}`, 'yyyy-MM-dd')) && attendance.type === `${checkOut_KEY}`)
 
       return {
         todayCheckInAttendance,
