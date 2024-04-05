@@ -38,6 +38,11 @@ function formatDate(currentTime, isTimeFormat) {
   return isTimeFormat ? `${hours}:${minutes}:${seconds}.${milliseconds}` : `${year}-${month}-${day}`
 }
 
+//TODO User this to format
+function toformatDate(date,format){
+ return format(new Date(`${date}`),`${format}`)
+}
+
 async function getUserBranch(user) {
 
   return await strapi.db.query('plugin::users-permissions.user').findOne({
@@ -265,6 +270,7 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
         .service("api::attendance.attendance").find(sanitizedQueryParams)
 
       const outputArr = [];
+      const outputTest = [];
 
       for (const day of allDaysInMonth.reverse()) {
 
@@ -298,6 +304,8 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
               /**********************************************************/
               try {
                 const {differenceInMinutes} = this.getDiff(checkIn.date, checkIn.time, day, dayOfWork[0].start_at)
+
+                outputTest.push(differenceInMinutes)
 
                 if (differenceInMinutes > 20) {
                   status = 'attendOnLate'
@@ -338,7 +346,7 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
 
             // dayOfWork: dayOfWork ? dayOfWork[0] ?? null : null,
             // dayOfWork: dayOfWork ? dayOfWork[0] ?? null : null,
-
+            outputTest:outputTest,
             lateInMinutes: lateInMinutes,
             dayOfWork: dayOfWork ? dayOfWork[0].day ?? null : null,
             dayOfWorkStartAt: dayOfWork ? dayOfWork[0].start_at ?? null : null,
@@ -770,6 +778,8 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
 
     try {
 
+      // date1=new Date(`${date1}`)
+      // date2=new Date(`${date2}`)
       const endTime = parse(`${format(date1, 'yyyy-MM-dd')} ${time1}`, 'yyyy-MM-dd HH:mm:ss.SSS', new Date());
       const startTime = parse(`${format(date2, 'yyyy-MM-dd')} ${time2}`, 'yyyy-MM-dd HH:mm:ss.SSS', new Date());
 
