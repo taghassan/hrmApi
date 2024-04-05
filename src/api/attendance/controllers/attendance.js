@@ -266,7 +266,6 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
 
       const outputArr = [];
 
-return {results, pagination}
       for (const day of allDaysInMonth.reverse()) {
 
         let status = 'absent'
