@@ -265,7 +265,7 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
         .service("api::attendance.attendance").find(sanitizedQueryParams)
 
       const outputArr = [];
-const test=[]
+
       for (const day of allDaysInMonth.reverse()) {
 
         let status = 'absent'
@@ -277,10 +277,6 @@ const test=[]
         if (format(day, 'yyyy-MM-dd') <= format(now, 'yyyy-MM-dd')) {
 
           const {todayCheckInAttendance, todayCheckOutAttendance} = this.getToActionsOnDay(results, day)
-
-          test.push({
-            day: {todayCheckInAttendance, todayCheckOutAttendance}
-          })
 
           let checkIn = todayCheckInAttendance.sort(applySortByTime)[0]
           let checkOut = todayCheckOutAttendance.sort(applySortByTime)[todayCheckOutAttendance.length - 1]
@@ -360,7 +356,6 @@ const test=[]
       return ctx.send(
         {
           ok: true,
-          test,
           entries: outputArr,
           pagination: pagination,
           message: 'executed successfully !'
