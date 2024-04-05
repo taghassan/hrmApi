@@ -347,12 +347,12 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
             // dayOfWork: dayOfWork ? dayOfWork[0] ?? null : null,
 
 
-            // lateInMinutes: lateInMinutes,
-            // dayOfWork: dayOfWork ? dayOfWork[0].day ?? null : null,
-            // dayOfWorkStartAt: dayOfWork ? dayOfWork[0].start_at ?? null : null,
-            // dayOfWorkEndAt: dayOfWork ? dayOfWork[0].start_at ?? null : null,
-            // dayOfWorkIsWorkingDay: dayOfWork ? dayOfWork[0].isWorkingDay ?? null : null,
-            // dayOfWorkIsWeekEnd: dayOfWork ? dayOfWork[0].isWeekEnd ?? null : null,
+            lateInMinutes: lateInMinutes,
+            dayOfWork: dayOfWork ? dayOfWork[0].day ?? null : null,
+            dayOfWorkStartAt: dayOfWork ? dayOfWork[0].start_at ?? null : null,
+            dayOfWorkEndAt: dayOfWork ? dayOfWork[0].start_at ?? null : null,
+            dayOfWorkIsWorkingDay: dayOfWork ? dayOfWork[0].isWorkingDay ?? null : null,
+            dayOfWorkIsWeekEnd: dayOfWork ? dayOfWork[0].isWeekEnd ?? null : null,
 
 
             checkIn: checkIn ?? null,
