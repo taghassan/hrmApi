@@ -342,7 +342,6 @@ const test=[]
 
             // dayOfWork: dayOfWork ? dayOfWork[0] ?? null : null,
             // dayOfWork: dayOfWork ? dayOfWork[0] ?? null : null,
-            test,
 
             lateInMinutes: lateInMinutes,
             dayOfWork: dayOfWork ? dayOfWork[0].day ?? null : null,
@@ -361,6 +360,7 @@ const test=[]
       return ctx.send(
         {
           ok: true,
+          test,
           entries: outputArr,
           pagination: pagination,
           message: 'executed successfully !'
@@ -815,8 +815,8 @@ const test=[]
       const todayCheckOutAttendance = (results ?? []).filter(attendance => (attendance.date && format(`${attendance.date}`, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd')) && attendance.type === `${checkOut_KEY}`)
 
       return {
-        todayCheckInAttendance,
-        todayCheckOutAttendance
+        todayCheckInAttendance:results,
+        todayCheckOutAttendance:results
       }
     } catch (e) {
       return {
