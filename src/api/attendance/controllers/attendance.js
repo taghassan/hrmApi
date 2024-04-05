@@ -256,6 +256,7 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
         .service("api::attendance.attendance").find(sanitizedQueryParams)
 
       const outputArr = [];
+      const test=[]
 
       for (const day of allDaysInMonth.reverse()) {
 
@@ -267,8 +268,13 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
         let lateInMinutes = 0
         if (format(day, 'yyyy-MM-dd') <= format(now, 'yyyy-MM-dd')) {
 
+          const {todayCheckInAttendance, todayCheckOutAttendance} = this.getToActionsOnDay(results, day)
 
-       const {todayCheckInAttendance,todayCheckOutAttendance}=  this.getToActionsOnDay(results,day)
+          // const todayCheckInAttendance = (results??[]).filter(attendance => (attendance.date && format(`${attendance.date}`, 'yyyy-MM-dd') === format(`${day}`, 'yyyy-MM-dd')) && attendance.type === `${checkIn_KEY}`)
+          // const todayCheckOutAttendance =(results??[]).filter(attendance => (attendance.date && format(`${attendance.date}`, 'yyyy-MM-dd') === format(`${day}`, 'yyyy-MM-dd')) && attendance.type === `${checkOut_KEY}`)
+test.push([
+  format(`${day}`, 'yyyy-MM-dd'),
+])
 
           let checkIn = todayCheckInAttendance.sort(applySortByTime)[0]
           let checkOut = todayCheckOutAttendance.sort(applySortByTime)[todayCheckOutAttendance.length - 1]
@@ -283,27 +289,27 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
 
             status = 'attendOnTime'
 
-              if (dayOfWork&& dayOfWork[0]  && dayOfWork[0].start_at && checkIn && checkIn.time && checkIn.date) {
+            if (dayOfWork && dayOfWork[0] && dayOfWork[0].start_at && checkIn && checkIn.time && checkIn.date) {
 
-                /**********************************************************/
-                /**   **/
-                /**********************************************************/
-                try {
-                  const {differenceInMinutes}=  this.getDiff(checkIn.date,checkIn.time ,day , dayOfWork[0].start_at)
+              /**********************************************************/
+              /**   **/
+              /**********************************************************/
+              try {
+                const {differenceInMinutes} = this.getDiff(checkIn.date, checkIn.time, day, dayOfWork[0].start_at)
 
-                  if (differenceInMinutes > 20) {
-                    status = 'attendOnLate'
-                  }
-
-                  lateInMinutes = differenceInMinutes
-
-                } catch (e) {
-                  lateInMinutes = -99
+                if (differenceInMinutes > 20) {
+                  status = 'attendOnLate'
                 }
 
-              } else {
+                lateInMinutes = differenceInMinutes
 
+              } catch (e) {
+                lateInMinutes = -99
               }
+
+            } else {
+
+            }
 
             checkIn = checkIn.type === checkIn_KEY ? checkIn.time : null
           } else {
@@ -331,12 +337,15 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
             // dayOfWork: dayOfWork ? dayOfWork[0] ?? null : null,
             // dayOfWork: dayOfWork ? dayOfWork[0] ?? null : null,
 
+
             lateInMinutes: lateInMinutes,
             dayOfWork: dayOfWork ? dayOfWork[0].day ?? null : null,
             dayOfWorkStartAt: dayOfWork ? dayOfWork[0].start_at ?? null : null,
             dayOfWorkEndAt: dayOfWork ? dayOfWork[0].start_at ?? null : null,
             dayOfWorkIsWorkingDay: dayOfWork ? dayOfWork[0].isWorkingDay ?? null : null,
             dayOfWorkIsWeekEnd: dayOfWork ? dayOfWork[0].isWeekEnd ?? null : null,
+
+            test,
 
             checkIn: checkIn ?? null,
             checkOut: checkOut ?? null,
@@ -758,9 +767,9 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
 
     return await strapi.entityService.findMany("api::attendance.attendance", filter)
   },
-  getDiff(date1,time1,date2,time2) {
+  getDiff(date1, time1, date2, time2) {
 
-    try{
+    try {
       const endTime = parse(`${format(date1, 'yyyy-MM-dd')} ${time1}`, 'yyyy-MM-dd HH:mm:ss.SSS', new Date());
       const startTime = parse(`${format(date2, 'yyyy-MM-dd')} ${time2}`, 'yyyy-MM-dd HH:mm:ss.SSS', new Date());
 
@@ -772,8 +781,8 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
         difference += 24 * 60 * 60 * 1000; // Add 24 hours in milliseconds
       }
 
-      if(startTime>endTime){
-        difference=  difference*-1
+      if (startTime > endTime) {
+        difference = difference * -1
       }
 
       let differenceInSeconds = Math.floor(difference / 1000);
@@ -782,31 +791,31 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
       return {
         differenceInSeconds,
         differenceInMinutes,
-        differenceInhrs:hrs,
+        differenceInhrs: hrs,
       }
-    }catch (e){
+    } catch (e) {
       return {
-        differenceInSeconds:0,
-        differenceInMinutes:0,
-        differenceInhrs:0,
+        differenceInSeconds: 0,
+        differenceInMinutes: 0,
+        differenceInhrs: 0,
       }
     }
 
   },
-  getToActionsOnDay(results,day) {
+  getToActionsOnDay(results, day) {
 
-    try{
-      const todayCheckInAttendance = results.filter(attendance => (attendance.date && format(`${attendance.date}`, 'yyyy-MM-dd') === format(`${day}`, 'yyyy-MM-dd')) && attendance.type === `${checkIn_KEY}`)
-      const todayCheckOutAttendance = results.filter(attendance => (attendance.date && format(`${attendance.date}`, 'yyyy-MM-dd') === format(`${day}`, 'yyyy-MM-dd')) && attendance.type === `${checkOut_KEY}`)
+    try {
+      const todayCheckInAttendance = (results??[]).filter(attendance => (attendance.date && format(`${attendance.date}`, 'yyyy-MM-dd') === format(`${day}`, 'yyyy-MM-dd')) && attendance.type === `${checkIn_KEY}`)
+      const todayCheckOutAttendance =(results??[]).filter(attendance => (attendance.date && format(`${attendance.date}`, 'yyyy-MM-dd') === format(`${day}`, 'yyyy-MM-dd')) && attendance.type === `${checkOut_KEY}`)
 
       return {
         todayCheckInAttendance,
         todayCheckOutAttendance
       }
-    }catch (e) {
+    } catch (e) {
       return {
-        todayCheckInAttendance:[],
-        todayCheckOutAttendance:[]
+        todayCheckInAttendance: [],
+        todayCheckOutAttendance: []
       }
     }
 
