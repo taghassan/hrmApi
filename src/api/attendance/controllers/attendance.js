@@ -251,6 +251,7 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
         ]
       }
       sanitizedQueryParams.populate = '*'
+      sanitizedQueryParams.sort =   {id: 'desc'}
 
       const {results, pagination} = await strapi
         .service("api::attendance.attendance").find(sanitizedQueryParams)
