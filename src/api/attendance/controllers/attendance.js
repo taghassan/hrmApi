@@ -265,7 +265,7 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
         .service("api::attendance.attendance").find(sanitizedQueryParams)
 
       const outputArr = [];
-
+const test=[]
       for (const day of allDaysInMonth.reverse()) {
 
         let status = 'absent'
@@ -278,6 +278,9 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
 
           const {todayCheckInAttendance, todayCheckOutAttendance} = this.getToActionsOnDay(results, day)
 
+          test.push({
+            day: {todayCheckInAttendance, todayCheckOutAttendance}
+          })
 
           let checkIn = todayCheckInAttendance.sort(applySortByTime)[0]
           let checkOut = todayCheckOutAttendance.sort(applySortByTime)[todayCheckOutAttendance.length - 1]
@@ -339,7 +342,7 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
 
             // dayOfWork: dayOfWork ? dayOfWork[0] ?? null : null,
             // dayOfWork: dayOfWork ? dayOfWork[0] ?? null : null,
-
+            test,
 
             lateInMinutes: lateInMinutes,
             dayOfWork: dayOfWork ? dayOfWork[0].day ?? null : null,
