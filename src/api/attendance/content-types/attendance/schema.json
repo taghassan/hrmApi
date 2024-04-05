@@ -43,6 +43,22 @@
       "type": "relation",
       "relation": "oneToOne",
       "target": "api::branch.branch"
+    },
+    "dayOfWork": {
+      "type": "string"
+    },
+    "dayOfWorkStartAt": {
+      "type": "string"
+    },
+    "dayOfWorkEndAt": {
+      "type": "string"
+    },
+    "dayOfWorkIsWorkingDay": {
+      "type": "boolean",
+      "default": true
+    },
+    "dayOfWorkIsWeekEnd": {
+      "type": "boolean"
     }
   }
 }

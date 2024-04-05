@@ -362,6 +362,196 @@ export interface AdminTransferTokenPermission extends Schema.CollectionType {
   };
 }
 
+export interface ApiAttendanceAttendance extends Schema.CollectionType {
+  collectionName: 'attendances';
+  info: {
+    singularName: 'attendance';
+    pluralName: 'attendances';
+    displayName: 'Attendance';
+    description: '';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    date: Attribute.Date;
+    time: Attribute.Time;
+    type: Attribute.Enumeration<['checkOut', 'checkIn']> &
+      Attribute.Required &
+      Attribute.DefaultTo<'checkIn'>;
+    user: Attribute.Relation<
+      'api::attendance.attendance',
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    latitude: Attribute.String;
+    longitude: Attribute.String;
+    branch: Attribute.Relation<
+      'api::attendance.attendance',
+      'oneToOne',
+      'api::branch.branch'
+    >;
+    dayOfWork: Attribute.String;
+    dayOfWorkStartAt: Attribute.String;
+    dayOfWorkEndAt: Attribute.String;
+    dayOfWorkIsWorkingDay: Attribute.Boolean & Attribute.DefaultTo<true>;
+    dayOfWorkIsWeekEnd: Attribute.Boolean;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::attendance.attendance',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::attendance.attendance',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiBranchBranch extends Schema.CollectionType {
+  collectionName: 'branches';
+  info: {
+    singularName: 'branch';
+    pluralName: 'branches';
+    displayName: 'Branch';
+    description: '';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    name: Attribute.String;
+    checkin_range_radius: Attribute.Decimal &
+      Attribute.Required &
+      Attribute.DefaultTo<1>;
+    latitude: Attribute.String;
+    longitude: Attribute.String;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::branch.branch',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::branch.branch',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiDayDay extends Schema.CollectionType {
+  collectionName: 'days';
+  info: {
+    singularName: 'day';
+    pluralName: 'days';
+    displayName: 'Day';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    day: Attribute.String;
+    code: Attribute.String;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<'api::day.day', 'oneToOne', 'admin::user'> &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<'api::day.day', 'oneToOne', 'admin::user'> &
+      Attribute.Private;
+  };
+}
+
+export interface ApiDepartmentDepartment extends Schema.CollectionType {
+  collectionName: 'departments';
+  info: {
+    singularName: 'department';
+    pluralName: 'departments';
+    displayName: 'Department';
+    description: '';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    NameAr: Attribute.String;
+    NameEn: Attribute.String;
+    users: Attribute.Relation<
+      'api::department.department',
+      'oneToMany',
+      'plugin::users-permissions.user'
+    >;
+    departments: Attribute.Relation<
+      'api::department.department',
+      'oneToMany',
+      'api::department.department'
+    >;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::department.department',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::department.department',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiShiftShift extends Schema.CollectionType {
+  collectionName: 'shifts';
+  info: {
+    singularName: 'shift';
+    pluralName: 'shifts';
+    displayName: 'Shift';
+    description: '';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    name: Attribute.String;
+    status: Attribute.Boolean & Attribute.DefaultTo<true>;
+    users: Attribute.Relation<
+      'api::shift.shift',
+      'oneToMany',
+      'plugin::users-permissions.user'
+    >;
+    days: Attribute.Component<'days.days', true>;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::shift.shift',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::shift.shift',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface PluginUploadFile extends Schema.CollectionType {
   collectionName: 'files';
   info: {
@@ -859,191 +1049,6 @@ export interface PluginUsersPermissionsUser extends Schema.CollectionType {
   };
 }
 
-export interface ApiAttendanceAttendance extends Schema.CollectionType {
-  collectionName: 'attendances';
-  info: {
-    singularName: 'attendance';
-    pluralName: 'attendances';
-    displayName: 'Attendance';
-    description: '';
-  };
-  options: {
-    draftAndPublish: true;
-  };
-  attributes: {
-    date: Attribute.Date;
-    time: Attribute.Time;
-    type: Attribute.Enumeration<['checkOut', 'checkIn']> &
-      Attribute.Required &
-      Attribute.DefaultTo<'checkIn'>;
-    user: Attribute.Relation<
-      'api::attendance.attendance',
-      'manyToOne',
-      'plugin::users-permissions.user'
-    >;
-    latitude: Attribute.String;
-    longitude: Attribute.String;
-    branch: Attribute.Relation<
-      'api::attendance.attendance',
-      'oneToOne',
-      'api::branch.branch'
-    >;
-    createdAt: Attribute.DateTime;
-    updatedAt: Attribute.DateTime;
-    publishedAt: Attribute.DateTime;
-    createdBy: Attribute.Relation<
-      'api::attendance.attendance',
-      'oneToOne',
-      'admin::user'
-    > &
-      Attribute.Private;
-    updatedBy: Attribute.Relation<
-      'api::attendance.attendance',
-      'oneToOne',
-      'admin::user'
-    > &
-      Attribute.Private;
-  };
-}
-
-export interface ApiBranchBranch extends Schema.CollectionType {
-  collectionName: 'branches';
-  info: {
-    singularName: 'branch';
-    pluralName: 'branches';
-    displayName: 'Branch';
-    description: '';
-  };
-  options: {
-    draftAndPublish: true;
-  };
-  attributes: {
-    name: Attribute.String;
-    checkin_range_radius: Attribute.Decimal &
-      Attribute.Required &
-      Attribute.DefaultTo<1>;
-    latitude: Attribute.String;
-    longitude: Attribute.String;
-    createdAt: Attribute.DateTime;
-    updatedAt: Attribute.DateTime;
-    publishedAt: Attribute.DateTime;
-    createdBy: Attribute.Relation<
-      'api::branch.branch',
-      'oneToOne',
-      'admin::user'
-    > &
-      Attribute.Private;
-    updatedBy: Attribute.Relation<
-      'api::branch.branch',
-      'oneToOne',
-      'admin::user'
-    > &
-      Attribute.Private;
-  };
-}
-
-export interface ApiDayDay extends Schema.CollectionType {
-  collectionName: 'days';
-  info: {
-    singularName: 'day';
-    pluralName: 'days';
-    displayName: 'Day';
-  };
-  options: {
-    draftAndPublish: false;
-  };
-  attributes: {
-    day: Attribute.String;
-    code: Attribute.String;
-    createdAt: Attribute.DateTime;
-    updatedAt: Attribute.DateTime;
-    createdBy: Attribute.Relation<'api::day.day', 'oneToOne', 'admin::user'> &
-      Attribute.Private;
-    updatedBy: Attribute.Relation<'api::day.day', 'oneToOne', 'admin::user'> &
-      Attribute.Private;
-  };
-}
-
-export interface ApiDepartmentDepartment extends Schema.CollectionType {
-  collectionName: 'departments';
-  info: {
-    singularName: 'department';
-    pluralName: 'departments';
-    displayName: 'Department';
-    description: '';
-  };
-  options: {
-    draftAndPublish: true;
-  };
-  attributes: {
-    NameAr: Attribute.String;
-    NameEn: Attribute.String;
-    users: Attribute.Relation<
-      'api::department.department',
-      'oneToMany',
-      'plugin::users-permissions.user'
-    >;
-    departments: Attribute.Relation<
-      'api::department.department',
-      'oneToMany',
-      'api::department.department'
-    >;
-    createdAt: Attribute.DateTime;
-    updatedAt: Attribute.DateTime;
-    publishedAt: Attribute.DateTime;
-    createdBy: Attribute.Relation<
-      'api::department.department',
-      'oneToOne',
-      'admin::user'
-    > &
-      Attribute.Private;
-    updatedBy: Attribute.Relation<
-      'api::department.department',
-      'oneToOne',
-      'admin::user'
-    > &
-      Attribute.Private;
-  };
-}
-
-export interface ApiShiftShift extends Schema.CollectionType {
-  collectionName: 'shifts';
-  info: {
-    singularName: 'shift';
-    pluralName: 'shifts';
-    displayName: 'Shift';
-    description: '';
-  };
-  options: {
-    draftAndPublish: true;
-  };
-  attributes: {
-    name: Attribute.String;
-    status: Attribute.Boolean & Attribute.DefaultTo<true>;
-    users: Attribute.Relation<
-      'api::shift.shift',
-      'oneToMany',
-      'plugin::users-permissions.user'
-    >;
-    days: Attribute.Component<'days.days', true>;
-    createdAt: Attribute.DateTime;
-    updatedAt: Attribute.DateTime;
-    publishedAt: Attribute.DateTime;
-    createdBy: Attribute.Relation<
-      'api::shift.shift',
-      'oneToOne',
-      'admin::user'
-    > &
-      Attribute.Private;
-    updatedBy: Attribute.Relation<
-      'api::shift.shift',
-      'oneToOne',
-      'admin::user'
-    > &
-      Attribute.Private;
-  };
-}
-
 declare module '@strapi/types' {
   export module Shared {
     export interface ContentTypes {
@@ -1054,6 +1059,11 @@ declare module '@strapi/types' {
       'admin::api-token-permission': AdminApiTokenPermission;
       'admin::transfer-token': AdminTransferToken;
       'admin::transfer-token-permission': AdminTransferTokenPermission;
+      'api::attendance.attendance': ApiAttendanceAttendance;
+      'api::branch.branch': ApiBranchBranch;
+      'api::day.day': ApiDayDay;
+      'api::department.department': ApiDepartmentDepartment;
+      'api::shift.shift': ApiShiftShift;
       'plugin::upload.file': PluginUploadFile;
       'plugin::upload.folder': PluginUploadFolder;
       'plugin::content-releases.release': PluginContentReleasesRelease;
@@ -1063,11 +1073,6 @@ declare module '@strapi/types' {
       'plugin::users-permissions.permission': PluginUsersPermissionsPermission;
       'plugin::users-permissions.role': PluginUsersPermissionsRole;
       'plugin::users-permissions.user': PluginUsersPermissionsUser;
-      'api::attendance.attendance': ApiAttendanceAttendance;
-      'api::branch.branch': ApiBranchBranch;
-      'api::day.day': ApiDayDay;
-      'api::department.department': ApiDepartmentDepartment;
-      'api::shift.shift': ApiShiftShift;
     }
   }
 }
