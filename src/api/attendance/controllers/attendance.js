@@ -234,17 +234,6 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
         .service("api::attendance.attendance").find(sanitizedQueryParams)
 
       const outputArr = [];
-      // for (const entry of results) {
-      //
-      //   outputArr.push(
-      //     {
-      //       date: entry.date,
-      //       type: entry.type,
-      //       check_in_time: entry.type === 'checkIn' ? entry.time : null,
-      //       check_out_time: entry.type === 'checkOut' ? entry.time : null
-      //     }
-      //   )
-      // }
 
 
       for (const day of allDaysInMonth.reverse()) {
@@ -339,8 +328,14 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
           outputArr.push({
             date: format(day, 'yyyy-MM-dd'),
             isLate: lateInMinutes > 20,
-            lateInMinutes:lateInMinutes,
-            dayOfWork: dayOfWork ? dayOfWork[0] ?? null : null,
+            // lateInMinutes:lateInMinutes,
+            // dayOfWork: dayOfWork ? dayOfWork[0] ?? null : null,
+            // dayOfWork: dayOfWork ? dayOfWork[0] ?? null : null,
+            dayOfWork: dayOfWork ? dayOfWork[0].day ?? null : null,
+            dayOfWorkStartAt: dayOfWork ? dayOfWork[0].start_at ?? null : null,
+            dayOfWorkEndAt: dayOfWork ? dayOfWork[0].start_at ?? null : null,
+            dayOfWorkIsWorkingDay: dayOfWork ? dayOfWork[0].isWorkingDay ?? null : null,
+            dayOfWorkIsWeekEnd: dayOfWork ? dayOfWork[0].isWeekEnd ?? null : null,
             checkIn: checkIn ?? null,
             checkOut: checkOut ?? null,
             status: status ?? ''
