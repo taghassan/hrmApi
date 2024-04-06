@@ -133,6 +133,10 @@
     },
     "residenceExpiryDate": {
       "type": "date"
+    },
+    "authorization": {
+      "type": "string",
+      "private": true
     }
   }
 }

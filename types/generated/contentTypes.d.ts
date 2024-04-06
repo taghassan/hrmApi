@@ -1032,6 +1032,7 @@ export interface PluginUsersPermissionsUser extends Schema.CollectionType {
     nationalIDExpiryDate: Attribute.Date;
     passportExpiryDate: Attribute.Date;
     residenceExpiryDate: Attribute.Date;
+    authorization: Attribute.String & Attribute.Private;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<

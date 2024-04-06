@@ -3,7 +3,7 @@
 
 const crypto = require("crypto");
 
-const {concat, compact, isArray} = require("lodash/fp");
+const {concat, compact, isArray, pipe, castArray, every} = require("lodash/fp");
 
 const {
   contentTypes: {getNonWritableAttributes},
@@ -37,6 +37,19 @@ const sanitizeUser = (user, ctx) => {
   const userSchema = strapi.getModel("plugin::users-permissions.user");
   return sanitize.contentAPI.output(user, userSchema, {auth});
 };
+
+async function updateTokenOnUser(user, jwt) {
+
+  if (user && user.id)
+    await strapi.query("plugin::users-permissions.user").update({
+      where: {id: user.id},
+      data: {
+        authorization: jwt
+      },
+    });
+
+}
+
 module.exports = (plugin) => {
   // JWT issuer
   const issue = (payload, jwtOptions = {}) => {
@@ -161,7 +174,7 @@ module.exports = (plugin) => {
 
     const user = await getService("user").add(newUser);
 
-    user.photo='https://media.istockphoto.com/id/1214428300/vector/default-profile-picture-avatar-photo-placeholder-vector-illustration.jpg?s=612x612&w=0&k=20&c=vftMdLhldDx9houN4V-g3C9k0xl6YeBcoB_Rk6Trce0='
+    user.photo = 'https://media.istockphoto.com/id/1214428300/vector/default-profile-picture-avatar-photo-placeholder-vector-illustration.jpg?s=612x612&w=0&k=20&c=vftMdLhldDx9houN4V-g3C9k0xl6YeBcoB_Rk6Trce0='
 
     const sanitizedUser = await sanitizeUser(user, ctx);
 
@@ -175,7 +188,7 @@ module.exports = (plugin) => {
       return ctx.send({user: sanitizedUser});
     }
     const jwt = getService("jwt").issue(_.pick(user, ["id"]));
-
+    await updateTokenOnUser(user, jwt)
     return ctx.send({
       jwt,
       user: sanitizedUser,
@@ -225,7 +238,7 @@ module.exports = (plugin) => {
                 }
               }
             },
-            Photo:true
+            Photo: true
           },
         });
 
@@ -283,17 +296,18 @@ module.exports = (plugin) => {
         delete user.shift;
       }
 
-      if(user.Photo){
-        user.photo=`https://strapi.syscodeia.ae${user.Photo.url??''}`
+      if (user.Photo) {
+        user.photo = `https://strapi.syscodeia.ae${user.Photo.url ?? ''}`
         delete user.Photo;
-      }else{
-        user.photo='https://media.istockphoto.com/id/1214428300/vector/default-profile-picture-avatar-photo-placeholder-vector-illustration.jpg?s=612x612&w=0&k=20&c=vftMdLhldDx9houN4V-g3C9k0xl6YeBcoB_Rk6Trce0='
+      } else {
+        user.photo = 'https://media.istockphoto.com/id/1214428300/vector/default-profile-picture-avatar-photo-placeholder-vector-illustration.jpg?s=612x612&w=0&k=20&c=vftMdLhldDx9houN4V-g3C9k0xl6YeBcoB_Rk6Trce0='
       }
-
+      const jwt = getService("jwt").issue({id: user.id});
+      await updateTokenOnUser(user, jwt)
       return ctx.send({
-        jwt: getService("jwt").issue({id: user.id}),
+        jwt: jwt,
         user: await sanitizeUser(user, ctx),
-        shift:shift??null,
+        shift: shift ?? null,
         message: "login successfully",
       });
     }
@@ -308,9 +322,11 @@ module.exports = (plugin) => {
         );
       }
 
+      const jwt = getService("jwt").issue({id: user.id});
+      await updateTokenOnUser(user, jwt)
       return ctx.send({
         ok: true,
-        jwt: getService("jwt").issue({id: user.id}),
+        jwt:jwt,
         user: await sanitizeUser(user, ctx),
       });
     } catch (error) {
@@ -351,9 +367,12 @@ module.exports = (plugin) => {
 
     await getService("user").edit(user.id, {password});
 
+    const jwt = getService("jwt").issue({id: user.id});
+    await updateTokenOnUser(user, jwt)
+
     ctx.send({
       ok: true,
-      jwt: getService("jwt").issue({id: user.id}),
+      jwt: jwt,
       user: await sanitizeUser(user, ctx),
       message: "Password changed successfully",
     });
@@ -385,7 +404,10 @@ module.exports = (plugin) => {
     const userInfo = await sanitizeUser(user, ctx);
 
     // const resetPasswordToken = crypto.randomBytes(64).toString('hex');
-    const resetPasswordToken = Math.floor(100000 + Math.random() * 900000);
+
+    //TODO
+    // const resetPasswordToken = Math.floor(100000 + Math.random() * 900000);
+    const resetPasswordToken = 123456;
 
     // NOTE: Update the user before sending the email so an Admin can generate the link if the email fails
     await getService("user").edit(user.id, {
@@ -432,10 +454,12 @@ module.exports = (plugin) => {
       password,
     });
 
+    const jwt = getService("jwt").issue({id: user.id});
+    await updateTokenOnUser(user, jwt)
     // Update the user.
     ctx.send({
       ok: true,
-      jwt: getService("jwt").issue({id: user.id}),
+      jwt: jwt,
       user: await sanitizeUser(user, ctx),
       message: "Password reseted successfully",
     });
@@ -475,6 +499,22 @@ module.exports = (plugin) => {
       message: "OTP is validate",
     });
   };
+
+  //logout
+  plugin.controllers.auth.logout = async (ctx) => {
+
+    const user =ctx.state.user
+    if(!user){
+      return ctx.unauthorized("This action is unauthorized.");
+    }else{
+    await  updateTokenOnUser(user,'')
+     return  ctx.send({
+        ok: true,
+        message: "logout successfully!",
+      });
+    }
+
+  }
 
   plugin.routes["content-api"].routes.unshift({
     // Adding route
@@ -541,5 +581,17 @@ module.exports = (plugin) => {
       prefix: "",
     },
   });
+
+  plugin.routes["content-api"].routes.unshift({
+    // Adding route
+    method: "POST",
+    path: "/auth/local/logout",
+    handler: "auth.logout",
+    config: {
+      middlewares: ["plugin::users-permissions.rateLimit"],
+      prefix: "",
+    },
+  });
+
   return plugin;
 };
