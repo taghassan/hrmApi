@@ -376,27 +376,6 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
 
   async recentActions(ctx) {
 
-    // const user = ctx.state.user;
-    //
-    // const lastCheckin = await this.getLastAction('checkIn', user);
-    // const lastCheckOut = await this.getLastAction('checkOut', user);
-    //
-    //
-    // const lastCheckinDatetime = lastCheckin[0] ? '' + lastCheckin[0].date + ' ' + lastCheckin[0].time : ''
-    // const lastCheckOutDatetime = lastCheckOut[0] ? '' + lastCheckOut[0].date + ' ' + lastCheckOut[0].time : ''
-    //
-    //
-    // ctx.send(
-    //   {
-    //     ok: true,
-    //     // lastCheckin: lastCheckin[0] ?? null,
-    //     // lastCheckOut: lastCheckOut[0] ?? null,
-    //     last_checkin_datetime: lastCheckinDatetime,
-    //     last_checkout_datetime: lastCheckOutDatetime,
-    //     message: 'executed successfully !'
-    //   }
-    // )
-
     const user = ctx.state.user;
     const sanitizedQueryParams = await this.sanitizeQuery(ctx);
 
@@ -408,14 +387,17 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
         }
       ]
     }
-    sanitizedQueryParams.sort = {date: 'desc'}
+    sanitizedQueryParams.sort =[
+      {date: 'desc'},
+      {time: 'desc'}
+    ]
     sanitizedQueryParams.populate = '*'
 
     const {results, pagination} = await strapi
       .service("api::attendance.attendance").find(sanitizedQueryParams)
 
     const outputArr = [];
-    for (const entry of results) {
+    for (const entry of (results??[])) {
 
       outputArr.push(
         {
@@ -722,7 +704,7 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
       attendedDays,
       offDays,
       absentDays,
-      rateOfCommitment,
+      rateOfCommitment:`${rateOfCommitment}`,
       vacation_balance,
       early_leave,
       permissions,
