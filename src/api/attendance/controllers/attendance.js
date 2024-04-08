@@ -493,8 +493,8 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
       email: user.email,
       branch_id: branch ? branch.id ?? 0 : null,
 
-      image: userWithBranch.Photo ? `https://strapi.syscodeia.ae${userWithBranch.Photo.url}` : '',
-      photo: userWithBranch.Photo ? `https://strapi.syscodeia.ae${userWithBranch.Photo.url}` : '',
+      image: userWithBranch.Photo ? `https://strapi.syscodeia.ae${userWithBranch.Photo.url}` : 'https://media.istockphoto.com/id/1214428300/vector/default-profile-picture-avatar-photo-placeholder-vector-illustration.jpg?s=612x612&w=0&k=20&c=vftMdLhldDx9houN4V-g3C9k0xl6YeBcoB_Rk6Trce0=',
+      photo: userWithBranch.Photo ? `https://strapi.syscodeia.ae${userWithBranch.Photo.url}` : 'https://media.istockphoto.com/id/1214428300/vector/default-profile-picture-avatar-photo-placeholder-vector-illustration.jpg?s=612x612&w=0&k=20&c=vftMdLhldDx9houN4V-g3C9k0xl6YeBcoB_Rk6Trce0=',
       first_check_in: first_check_in[0] ? '' + first_check_in[0].date + ' ' + first_check_in[0].time : null,
       last_check_out: last_check_out[0] ? '' + last_check_out[0].date + ' ' + last_check_out[0].time : null,
       shift: shift ?? null

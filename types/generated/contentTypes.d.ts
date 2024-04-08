@@ -1002,7 +1002,7 @@ export interface PluginUsersPermissionsUser extends Schema.CollectionType {
     >;
     NameEn: Attribute.String & Attribute.Required;
     NameAr: Attribute.String & Attribute.Required;
-    EmployeeNumber: Attribute.String;
+    EmployeeNumber: Attribute.String & Attribute.Required & Attribute.Unique;
     Photo: Attribute.Media;
     DOB: Attribute.Date & Attribute.Required;
     Phone: Attribute.String & Attribute.Required & Attribute.Unique;
