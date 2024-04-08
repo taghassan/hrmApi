@@ -131,7 +131,7 @@ module.exports = (plugin) => {
       throw new ApplicationError("Impossible to find the default role");
     }
 
-    const {email, username, provider} = params;
+    const {email, username, provider,EmployeeNumber,Phone} = params;
 
     const identifierFilter = {
       $or: [
@@ -139,6 +139,8 @@ module.exports = (plugin) => {
         {username: email.toLowerCase()},
         {username},
         {email: username},
+        {EmployeeNumber:EmployeeNumber},
+        {Phone:Phone}
       ],
     };
 
@@ -149,7 +151,7 @@ module.exports = (plugin) => {
       });
 
     if (conflictingUserCount > 0) {
-      throw new ApplicationError("Email or Username are already taken");
+      throw new ApplicationError("Email,Phone,EmployeeNumber or Username are already taken");
     }
 
     if (settings.unique_email) {
@@ -164,12 +166,19 @@ module.exports = (plugin) => {
       }
     }
 
+    const branches=await strapi.query('api::branch.branch').findMany()
+    const shifts=await strapi.query('api::shift.shift').findMany()
+    const departments=await strapi.query('api::department.department').findMany()
+
     const newUser = {
       ...params,
       role: role.id,
       email: email.toLowerCase(),
       username,
       confirmed: !settings.email_confirmation,
+      branch:branches && branches[0]?branches[0].id:null,
+      shift:shifts && shifts[0]?shifts[0].id:null,
+      department:departments && departments[0]?departments[0].id:null,
     };
 
     const user = await getService("user").add(newUser);

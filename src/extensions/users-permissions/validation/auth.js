@@ -10,6 +10,8 @@ const callbackSchema = yup.object({
 const registerSchema = yup.object({
   email: yup.string().email().required(),
   username: yup.string().required(),
+  EmployeeNumber: yup.string().required(),
+  Phone: yup.string().required(),
   password: yup.string().required(),
 });
 
