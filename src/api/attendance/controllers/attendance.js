@@ -713,6 +713,21 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
       nationalIDExpiryDate: user.nationalIDExpiryDate,
       passportExpiryDate: user.passportExpiryDate,
       residenceExpiryDate: user.residenceExpiryDate,
+      //Fake Api
+      performance_evaluation: [
+        {
+          year: 2023,
+          value: 85
+        },
+        {
+          year: 2022,
+          value: 98
+        },
+        {
+          year: 2021,
+          value: 95
+        }
+      ],
       from: format(firstDayOfMonth, 'yyyy-MM-dd'),
       to: format(lastDayOfMonth, 'yyyy-MM-dd')
     }

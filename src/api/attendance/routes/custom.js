@@ -87,6 +87,30 @@ module.exports= {
         config: {
           middlewares: ["api::attendance.auth"],
         }
+      },
+      {
+        method: 'GET',
+        path: '/permissions',
+        handler: 'permissions.getPermissions',
+        config: {
+          middlewares: ["api::attendance.auth"],
+        }
+      },
+      {
+        method: 'GET',
+        path: '/permissions/status',
+        handler: 'permissions.getPermissionStatus',
+        config: {
+          middlewares: ["api::attendance.auth"],
+        }
+      },
+      {
+        method: 'GET',
+        path: '/tasks',
+        handler: 'tasks.getTasks',
+        config: {
+          middlewares: ["api::attendance.auth"],
+        }
       }
     ]
 
