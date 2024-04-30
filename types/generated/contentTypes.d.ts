@@ -514,6 +514,40 @@ export interface ApiDepartmentDepartment extends Schema.CollectionType {
   };
 }
 
+export interface ApiRulesAndPolicieRulesAndPolicie
+  extends Schema.CollectionType {
+  collectionName: 'rules_and_policies';
+  info: {
+    singularName: 'rules-and-policie';
+    pluralName: 'rules-and-policies';
+    displayName: 'Rules and Policie';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    name: Attribute.String;
+    Type: Attribute.Enumeration<['Rule', 'Policie']> &
+      Attribute.DefaultTo<'Rule'>;
+    file: Attribute.Media;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::rules-and-policie.rules-and-policie',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::rules-and-policie.rules-and-policie',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiShiftShift extends Schema.CollectionType {
   collectionName: 'shifts';
   info: {
@@ -1064,6 +1098,7 @@ declare module '@strapi/types' {
       'api::branch.branch': ApiBranchBranch;
       'api::day.day': ApiDayDay;
       'api::department.department': ApiDepartmentDepartment;
+      'api::rules-and-policie.rules-and-policie': ApiRulesAndPolicieRulesAndPolicie;
       'api::shift.shift': ApiShiftShift;
       'plugin::upload.file': PluginUploadFile;
       'plugin::upload.folder': PluginUploadFolder;
