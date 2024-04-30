@@ -5,6 +5,15 @@ module.exports = {
 
     let permissionsData = [
       {
+        id:1,
+        status: 'pending',
+        type: 'official',
+        isStartOfDay: false,
+        date: new Date(),
+        notes: 'Dolor sit amet'
+      },
+      {
+        id:2,
         status: 'approved',
         type: 'medical',
         isStartOfDay: true,
@@ -12,12 +21,21 @@ module.exports = {
         notes: 'Lorem ipsum'
       },
       {
+        id:3,
         status: 'pending',
         type: 'official',
         isStartOfDay: false,
         date: new Date(),
         notes: 'Dolor sit amet'
-      }
+      },
+      {
+        id:4,
+        status: 'approved',
+        type: 'medical',
+        isStartOfDay: true,
+        date: new Date(),
+        notes: 'Lorem ipsum'
+      },
     ];
 
     if (status) {
