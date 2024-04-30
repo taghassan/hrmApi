@@ -20,8 +20,8 @@ module.exports = {
       }
     ];
 
-    if (status && status === 'approved') {
-      return ctx.body = permissionsData.filter(data => data.status === 'approved');
+    if (status) {
+      return ctx.body = permissionsData.filter(data => data.status === `${status}`);
     } else {
       return ctx.body = permissionsData;
     }
