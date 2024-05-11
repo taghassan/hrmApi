@@ -1,6 +1,8 @@
+const {UnifiedResponse} = require("../../app_utils");
 module.exports={
   async getTasks(ctx){
-    return ctx.body={
+
+    const data={
       new_tasks: 3,
       current_tasks: 7,
       pending_tasks: 2,
@@ -19,5 +21,13 @@ module.exports={
         }
       ]
     }
+
+    return new UnifiedResponse(
+      true,
+      data,
+      'executed successfully !'
+    )
+
+
   }
 }

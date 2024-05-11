@@ -3,7 +3,7 @@
 const url = require('url');
 const {validateCheckINOutBody} = require("./Validation");
 const utils = require("@strapi/utils");
-const {mapUserWithSift, mapShiftDays} = require("../../app_utils");
+const {mapUserWithSift, mapShiftDays, UnifiedResponse} = require("../../app_utils");
 
 const {ApplicationError,} = utils.errors;
 const {
@@ -137,33 +137,43 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
 
     const dayOfWork = userWithShift && userWithShift.shift && userWithShift.shift.days ? userWithShift.shift.days.filter(shiftDay => shiftDay.day.toLowerCase() === (actionDate ?? currentTime).toLocaleString('en-us', {weekday: 'long'}).toLowerCase()) : null
 
+   const checkOutData= {
+      "data": {
+        "type": "checkOut",
+        "date": actionDate ?? currentTime,
+        "time": time ?? currentTime,
+        "user": user.id,
+        "branch": userWithBranch && userWithBranch.branch ? userWithBranch.branch.id : null,
+        "latitude": current_lat ?? '0.0',
+        "longitude": current_lang ?? '0.0',
+        "dayOfWork": dayOfWork && dayOfWork[0] && dayOfWork[0].day ? dayOfWork[0].day : '',
+        "dayOfWorkStartAt": dayOfWork && dayOfWork[0] && dayOfWork[0].start_at ? dayOfWork[0].start_at : '',
+        "dayOfWorkEndAt": dayOfWork && dayOfWork[0] && dayOfWork[0].end_at ? dayOfWork[0].end_at : '',
+        "dayOfWorkIsWorkingDay": dayOfWork && dayOfWork[0] && dayOfWork[0].isWorkingDay ? dayOfWork[0].isWorkingDay : true,
+        "dayOfWorkIsWeekEnd": dayOfWork && dayOfWork[0] && dayOfWork[0].isWeekEnd ? dayOfWork[0].isWeekEnd : false,
+      }
+    }
+
     const entry = await strapi
       .service("api::attendance.attendance")
       .create(
-        {
-          "data": {
-            "type": "checkOut",
-            "date": actionDate ?? currentTime,
-            "time": time ?? currentTime,
-            "user": user.id,
-            "branch": userWithBranch && userWithBranch.branch ? userWithBranch.branch.id : null,
-            "latitude": current_lat ?? '0.0',
-            "longitude": current_lang ?? '0.0',
-            "dayOfWork": dayOfWork && dayOfWork[0] && dayOfWork[0].day ? dayOfWork[0].day : '',
-            "dayOfWorkStartAt": dayOfWork && dayOfWork[0] && dayOfWork[0].start_at ? dayOfWork[0].start_at : '',
-            "dayOfWorkEndAt": dayOfWork && dayOfWork[0] && dayOfWork[0].end_at ? dayOfWork[0].end_at : '',
-            "dayOfWorkIsWorkingDay": dayOfWork && dayOfWork[0] && dayOfWork[0].isWorkingDay ? dayOfWork[0].isWorkingDay : true,
-            "dayOfWorkIsWeekEnd": dayOfWork && dayOfWork[0] && dayOfWork[0].isWeekEnd ? dayOfWork[0].isWeekEnd : false,
-          }
-        }
+        checkOutData
       );
 
-    ctx.send({
-      ok: true,
-      current_time: formatDate(currentTime, true),
-      current_date: formatDate(currentTime, false),
-      message: 'Check Out successfully !'
-    })
+    // await strapi.controller("api::app-action-log.log-controller").saveLog(ctx, checkOutData, {});
+    //
+
+
+    ctx.send(
+      new UnifiedResponse(
+        true,
+        {
+          current_time: formatDate(currentTime, true),
+          current_date: formatDate(currentTime, false),
+        },
+        'Check Out successfully !'
+      )
+    )
   },
 
   async checkIn(ctx) {
@@ -181,44 +191,56 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
 
     const dayOfWork = userWithShift && userWithShift.shift && userWithShift.shift.days ? userWithShift.shift.days.filter(shiftDay => shiftDay.day.toLowerCase() === (actionDate ?? currentTime).toLocaleString('en-us', {weekday: 'long'}).toLowerCase()) : null
 
+    const checkInData={
+      "data": {
+        "type": "checkIn",
+        "date": actionDate ?? currentTime,
+        "time": time ?? currentTime,
+        "user": user.id,
+        "branch": userWithBranch && userWithBranch.branch ? userWithBranch.branch.id : null,
+        "latitude": current_lat ?? '0.0',
+        "longitude": current_lang ?? '0.0',
+        "dayOfWork": dayOfWork && dayOfWork[0] && dayOfWork[0].day ? dayOfWork[0].day : '',
+        "dayOfWorkStartAt": dayOfWork && dayOfWork[0] && dayOfWork[0].start_at ? dayOfWork[0].start_at : '',
+        "dayOfWorkEndAt": dayOfWork && dayOfWork[0] && dayOfWork[0].end_at ? dayOfWork[0].end_at : '',
+        "dayOfWorkIsWorkingDay": dayOfWork && dayOfWork[0] && dayOfWork[0].isWorkingDay ? dayOfWork[0].isWorkingDay : true,
+        "dayOfWorkIsWeekEnd": dayOfWork && dayOfWork[0] && dayOfWork[0].isWeekEnd ? dayOfWork[0].isWeekEnd : false,
+      }
+    }
+
     await strapi
       .service("api::attendance.attendance")
       .create(
-        {
-          "data": {
-            "type": "checkIn",
-            "date": actionDate ?? currentTime,
-            "time": time ?? currentTime,
-            "user": user.id,
-            "branch": userWithBranch && userWithBranch.branch ? userWithBranch.branch.id : null,
-            "latitude": current_lat ?? '0.0',
-            "longitude": current_lang ?? '0.0',
-            "dayOfWork": dayOfWork && dayOfWork[0] && dayOfWork[0].day ? dayOfWork[0].day : '',
-            "dayOfWorkStartAt": dayOfWork && dayOfWork[0] && dayOfWork[0].start_at ? dayOfWork[0].start_at : '',
-            "dayOfWorkEndAt": dayOfWork && dayOfWork[0] && dayOfWork[0].end_at ? dayOfWork[0].end_at : '',
-            "dayOfWorkIsWorkingDay": dayOfWork && dayOfWork[0] && dayOfWork[0].isWorkingDay ? dayOfWork[0].isWorkingDay : true,
-            "dayOfWorkIsWeekEnd": dayOfWork && dayOfWork[0] && dayOfWork[0].isWeekEnd ? dayOfWork[0].isWeekEnd : false,
-          }
-        }
+        checkInData
       );
 
-    ctx.send({
-      ok: true,
-      current_time: formatDate(currentTime, true),
-      current_date: formatDate(currentTime, false),
-      branch_name: branch ? branch.name : '',
-      message: 'Check In successfully !'
-    })
+
+    // await strapi.controller("api::app-action-log.log-controller").saveLog(ctx, checkInData, {});
+
+
+    ctx.send(
+      new UnifiedResponse(
+        true,
+        {
+          current_time: formatDate(currentTime, true),
+          current_date: formatDate(currentTime, false),
+          branch_name: branch ? branch.name : '',
+        },
+        'Check In successfully !'
+      )
+    )
   },
 
   async currentServerTime(ctx) {
     const currentTime = new Date();
-    ctx.send(
-      {
-        ok: true,
-        current_time: currentTime,
-        message: 'executed successfully !'
-      }
+    return ctx.send(
+      new UnifiedResponse(
+        true,
+        {
+          current_time: currentTime,
+        },
+        'executed successfully !'
+      )
     )
   },
 
@@ -359,13 +381,17 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
         }
       }
 
-      return ctx.send(
-        {
-          ok: true,
-          entries: outputArr,
-          pagination: pagination,
-          message: 'executed successfully !'
-        }
+
+      return  ctx.send(
+        new UnifiedResponse(
+          true,
+          {
+            entries: outputArr,
+            pagination: pagination,
+          },
+          'executed successfully !'
+        )
+
       )
 
     } catch (e) {
@@ -412,13 +438,18 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
     }
 
 
-    return ctx.send(
-      {
-        ok: true,
-        entries: outputArr,
-        pagination: pagination,
-        message: 'executed successfully !'
-      }
+
+
+   return ctx.send(
+      new UnifiedResponse(
+        true,
+        {
+          entries: outputArr,
+          pagination: pagination,
+        },
+        'executed successfully !'
+      )
+
     )
 
   },
@@ -430,15 +461,22 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
     if (!branch)
       throw new ApplicationError("branch not found");
 
-    ctx.send({
-      id: branch.id,
-      latitude: branch.latitude ?? '0.0',
-      longitude: branch.longitude ?? '0.0',
-      checkin_range_radius: branch.checkin_range_radius,
-      name: branch.name,
-    })
+    return  ctx.send(
+      new UnifiedResponse(
+        true,
+        {
+          id: branch.id,
+          latitude: branch.latitude ?? '0.0',
+          longitude: branch.longitude ?? '0.0',
+          checkin_range_radius: branch.checkin_range_radius,
+          name: branch.name,
+        },
+        'executed successfully !'
+      )
+    )
 
   },
+
   async getBranchDetailsById(ctx) {
     const {branch_id} = ctx.params
     if (!branch_id)
@@ -453,13 +491,20 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
     if (!branch)
       throw new ApplicationError("branch not found");
 
-    ctx.send({
-      id: branch.id,
-      latitude: branch.latitude ?? '0.0',
-      longitude: branch.longitude ?? '0.0',
-      checkin_range_radius: branch.checkin_range_radius,
-      name: branch.name,
-    })
+
+    return  ctx.send(
+      new UnifiedResponse(
+        true,
+        {
+          id: branch.id,
+          latitude: branch.latitude ?? '0.0',
+          longitude: branch.longitude ?? '0.0',
+          checkin_range_radius: branch.checkin_range_radius,
+          name: branch.name,
+        },
+        'executed successfully !'
+      )
+    )
 
   },
   async getUserDetails(ctx) {
@@ -486,19 +531,25 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
       last_check_out = await this.getLastAction('checkOut', user, 'desc');
     }
 
-    ctx.send({
-      name: user.NameAr,
-      NameEn: user.NameEn,
-      NameAr: user.NameAr,
-      email: user.email,
-      branch_id: branch ? branch.id ?? 0 : null,
 
-      image: userWithBranch.Photo ? `https://strapi.syscodeia.ae${userWithBranch.Photo.url}` : 'https://media.istockphoto.com/id/1214428300/vector/default-profile-picture-avatar-photo-placeholder-vector-illustration.jpg?s=612x612&w=0&k=20&c=vftMdLhldDx9houN4V-g3C9k0xl6YeBcoB_Rk6Trce0=',
-      photo: userWithBranch.Photo ? `https://strapi.syscodeia.ae${userWithBranch.Photo.url}` : 'https://media.istockphoto.com/id/1214428300/vector/default-profile-picture-avatar-photo-placeholder-vector-illustration.jpg?s=612x612&w=0&k=20&c=vftMdLhldDx9houN4V-g3C9k0xl6YeBcoB_Rk6Trce0=',
-      first_check_in: first_check_in[0] ? '' + first_check_in[0].date + ' ' + first_check_in[0].time : null,
-      last_check_out: last_check_out[0] ? '' + last_check_out[0].date + ' ' + last_check_out[0].time : null,
-      shift: shift ?? null
-    })
+    return  ctx.send(
+      new UnifiedResponse(
+        true,
+        {
+          name: user.NameAr,
+          NameEn: user.NameEn,
+          NameAr: user.NameAr,
+          email: user.email,
+          branch_id: branch ? branch.id ?? 0 : null,
+          image: userWithBranch.Photo ? `https://strapi.syscodeia.ae${userWithBranch.Photo.url}` : 'https://media.istockphoto.com/id/1214428300/vector/default-profile-picture-avatar-photo-placeholder-vector-illustration.jpg?s=612x612&w=0&k=20&c=vftMdLhldDx9houN4V-g3C9k0xl6YeBcoB_Rk6Trce0=',
+          photo: userWithBranch.Photo ? `https://strapi.syscodeia.ae${userWithBranch.Photo.url}` : 'https://media.istockphoto.com/id/1214428300/vector/default-profile-picture-avatar-photo-placeholder-vector-illustration.jpg?s=612x612&w=0&k=20&c=vftMdLhldDx9houN4V-g3C9k0xl6YeBcoB_Rk6Trce0=',
+          first_check_in: first_check_in[0] ? '' + first_check_in[0].date + ' ' + first_check_in[0].time : null,
+          last_check_out: last_check_out[0] ? '' + last_check_out[0].date + ' ' + last_check_out[0].time : null,
+          shift: shift ?? null
+        },
+        'executed successfully !'
+      )
+    )
 
   },
 
@@ -536,13 +587,16 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
       entry = mapShiftDays(entry)
     })
 
-    ctx.send(
-      {
-        ok: true,
-        entries: entries,
-        message: 'executed successfully !'
-      }
+    return  ctx.send(
+      new UnifiedResponse(
+        true,
+        {
+          entries: entries,
+        },
+        'executed successfully !'
+      )
     )
+
   },
 
   async getUserShift(ctx) {
@@ -556,11 +610,15 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
     delete mappedUserWithSift.resetPasswordToken;
     delete mappedUserWithSift.confirmationToken;
 
-    ctx.send({
-      ok: true,
-      data: mappedUserWithSift,
-      message: 'executed successfully !'
-    })
+    return  ctx.send(
+      new UnifiedResponse(
+        true,
+        {
+          data: mappedUserWithSift,
+        },
+        'executed successfully !'
+      )
+    )
   },
   async getAttendanceReport(ctx) {
     const {from, to} = ctx.request.query
@@ -699,45 +757,59 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
     //      last_checkin_datetime: lastCheckinDatetime,
     //       last_checkout_datetime: lastCheckOutDatetime,
 
-    return {
-      totalDays,
-      attendedDays,
-      offDays,
-      absentDays,
-      rateOfCommitment:`${rateOfCommitment}`,
-      vacation_balance,
-      early_leave,
-      permissions,
-      late_attendance,
 
-      nationalIDExpiryDate: user.nationalIDExpiryDate,
-      passportExpiryDate: user.passportExpiryDate,
-      residenceExpiryDate: user.residenceExpiryDate,
-      //Fake Api
-      performance_evaluation: [
+
+    return  ctx.send(
+      new UnifiedResponse(
+        true,
         {
-          year: 2023,
-          value: 85
+          totalDays,
+          attendedDays,
+          offDays,
+          absentDays,
+          rateOfCommitment:`${rateOfCommitment}`,
+          vacation_balance,
+          early_leave,
+          permissions,
+          late_attendance,
+
+          nationalIDExpiryDate: user.nationalIDExpiryDate,
+          passportExpiryDate: user.passportExpiryDate,
+          residenceExpiryDate: user.residenceExpiryDate,
+          //Fake Api
+          performance_evaluation: [
+            {
+              year: 2023,
+              value: 85
+            },
+            {
+              year: 2022,
+              value: 98
+            },
+            {
+              year: 2021,
+              value: 95
+            }
+          ],
+          from: format(firstDayOfMonth, 'yyyy-MM-dd'),
+          to: format(lastDayOfMonth, 'yyyy-MM-dd')
         },
-        {
-          year: 2022,
-          value: 98
-        },
-        {
-          year: 2021,
-          value: 95
-        }
-      ],
-      from: format(firstDayOfMonth, 'yyyy-MM-dd'),
-      to: format(lastDayOfMonth, 'yyyy-MM-dd')
-    }
+        'executed successfully !'
+      )
+    )
+
   },
 
   async getAttendanceByDay(ctx, day) {
     const user = ctx.state.user;
 
-
-    return day
+    return  ctx.send(
+      new UnifiedResponse(
+        true,
+        day,
+        'executed successfully !'
+      )
+    )
   },
   async getLastAction(actionType, user, sort = 'desc', day) {
 
@@ -768,6 +840,7 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
 
 
     return await strapi.entityService.findMany("api::attendance.attendance", filter)
+
   },
   getDiff(date1, time1, date2, time2) {
 
@@ -799,6 +872,7 @@ module.exports = createCoreController('api::attendance.attendance', ({strapi}) =
         differenceInMinutes,
         differenceInhrs: hrs,
       }
+
     } catch (e) {
       return {
         differenceInSeconds: -1,

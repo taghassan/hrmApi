@@ -1,3 +1,4 @@
+const {UnifiedResponse} = require("../../app_utils");
 module.exports = {
 
   async getPermissions(ctx) {
@@ -39,9 +40,15 @@ module.exports = {
     ];
 
     if (status) {
-      return ctx.body = permissionsData.filter(data => data.status === `${status}`);
+     return new UnifiedResponse(true,permissionsData.filter(data => data.status === `${status}`),'')
+
     } else {
-      return ctx.body = permissionsData;
+      return new UnifiedResponse(
+        true,
+        permissionsData,
+        'executed successfully !'
+      )
+
     }
 
   }
@@ -53,6 +60,11 @@ module.exports = {
       others: 15
     };
 
-    return ctx.body = permissionsStatus;
+    return new UnifiedResponse(
+      true,
+      permissionsStatus,
+      'executed successfully !'
+    )
+
   }
 }

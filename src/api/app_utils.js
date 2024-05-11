@@ -47,7 +47,17 @@ const mapShiftDays =(shift)=>{
   return shift
 }
 
+ class UnifiedResponse {
+   constructor(ok = true, response = {}, message = "") {
+     this.ok = ok;
+     this.response = response;
+     this.message = message;
+   }
+ }
+
+
  module.exports = {
   mapUserWithSift,
-   mapShiftDays
+   mapShiftDays,
+   UnifiedResponse
 }
