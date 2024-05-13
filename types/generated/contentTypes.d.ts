@@ -860,6 +860,120 @@ export interface PluginUsersPermissionsUser extends Schema.CollectionType {
   };
 }
 
+export interface PluginStrapiPluginFcmFcmTopic extends Schema.CollectionType {
+  collectionName: 'fcm_topics';
+  info: {
+    singularName: 'fcm-topic';
+    pluralName: 'fcm-topics';
+    displayName: 'FCM Topic';
+  };
+  options: {
+    draftAndPublish: true;
+    comment: 'To create and manage FCM topics, which are used to send messages to devices from the Admin Dashboard.';
+  };
+  attributes: {
+    name: Attribute.String &
+      Attribute.Required &
+      Attribute.SetMinMaxLength<{
+        maxLength: 100;
+      }>;
+    label: Attribute.String &
+      Attribute.SetMinMaxLength<{
+        maxLength: 100;
+      }>;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'plugin::strapi-plugin-fcm.fcm-topic',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'plugin::strapi-plugin-fcm.fcm-topic',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface PluginStrapiPluginFcmFcmNotification
+  extends Schema.CollectionType {
+  collectionName: 'fcm_notifications';
+  info: {
+    singularName: 'fcm-notification';
+    pluralName: 'fcm-notifications';
+    displayName: 'FCM Notification';
+  };
+  options: {
+    draftAndPublish: true;
+    comment: '';
+  };
+  attributes: {
+    title: Attribute.String & Attribute.Required;
+    body: Attribute.Text;
+    payload: Attribute.JSON;
+    image: Attribute.String;
+    targetType: Attribute.Enumeration<['topics', 'tokens']> &
+      Attribute.Required;
+    target: Attribute.Text & Attribute.Required;
+    response: Attribute.JSON;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'plugin::strapi-plugin-fcm.fcm-notification',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'plugin::strapi-plugin-fcm.fcm-notification',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface PluginStrapiPluginFcmFcmPluginConfiguration
+  extends Schema.SingleType {
+  collectionName: 'fcm_plugin_configurations';
+  info: {
+    singularName: 'fcm-plugin-configuration';
+    pluralName: 'fcm-plugin-configurations';
+    displayName: 'FCM Plugin Configuration';
+  };
+  options: {
+    draftAndPublish: false;
+    comment: '';
+  };
+  attributes: {
+    serviceAccount: Attribute.JSON & Attribute.Required;
+    devicesTokensCollectionName: Attribute.String &
+      Attribute.DefaultTo<'up_users'>;
+    deviceTokenFieldName: Attribute.String &
+      Attribute.DefaultTo<'device_token'>;
+    deviceLabelFieldName: Attribute.String & Attribute.DefaultTo<'username'>;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'plugin::strapi-plugin-fcm.fcm-plugin-configuration',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'plugin::strapi-plugin-fcm.fcm-plugin-configuration',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiAttendanceAttendance extends Schema.CollectionType {
   collectionName: 'attendances';
   info: {
@@ -1103,6 +1217,9 @@ declare module '@strapi/types' {
       'plugin::users-permissions.permission': PluginUsersPermissionsPermission;
       'plugin::users-permissions.role': PluginUsersPermissionsRole;
       'plugin::users-permissions.user': PluginUsersPermissionsUser;
+      'plugin::strapi-plugin-fcm.fcm-topic': PluginStrapiPluginFcmFcmTopic;
+      'plugin::strapi-plugin-fcm.fcm-notification': PluginStrapiPluginFcmFcmNotification;
+      'plugin::strapi-plugin-fcm.fcm-plugin-configuration': PluginStrapiPluginFcmFcmPluginConfiguration;
       'api::attendance.attendance': ApiAttendanceAttendance;
       'api::branch.branch': ApiBranchBranch;
       'api::day.day': ApiDayDay;
