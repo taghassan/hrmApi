@@ -12,10 +12,13 @@ module.exports = createCoreController('api::permissions-request.permissions-requ
   async find(ctx) {
     const {status} = ctx.request.query;
 
+    const user = ctx.state.user;
+
     if (status) {
       ctx.query.filters = {
         ...ctx.query.filters,
-        status: status
+        status: status,
+        user:user.id
       }
     }
 
@@ -56,7 +59,7 @@ module.exports = createCoreController('api::permissions-request.permissions-requ
     )
   },
   async getPermissionStatus(ctx) {
-
+    const user = ctx.state.user;
     let permissionsStatus = {
       private: 0,
       medical: 0,
@@ -68,7 +71,8 @@ module.exports = createCoreController('api::permissions-request.permissions-requ
 
       permissionsStatus[item] = await strapi.db.query('api::permissions-request.permissions-request').count({
         where: {
-          type: `${item}`
+          type: `${item}`,
+          user:user.id
         }
       })
 
