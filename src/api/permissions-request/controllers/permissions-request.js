@@ -12,13 +12,12 @@ module.exports = createCoreController('api::permissions-request.permissions-requ
   async find(ctx) {
     const {status} = ctx.request.query;
 
-    const user = ctx.state.user;
 
     if (status) {
+      const user = ctx.state.user;
       ctx.query.filters = {
         ...ctx.query.filters,
-        status: status,
-        user:user.id
+        ...{status: status,},
       }
     }
 
@@ -48,13 +47,13 @@ module.exports = createCoreController('api::permissions-request.permissions-requ
     const entry = await super.create(ctx);
     await strapi.entityService.update('api::permissions-request.permissions-request', entry.data.id, {
       data: {
-        user:user.id
+        user: user.id
       },
     });
 
     return new UnifiedResponse(
       true,
-       entry.data,
+      entry.data,
       'executed successfully !'
     )
   },
@@ -72,7 +71,7 @@ module.exports = createCoreController('api::permissions-request.permissions-requ
       permissionsStatus[item] = await strapi.db.query('api::permissions-request.permissions-request').count({
         where: {
           type: `${item}`,
-          user:user.id
+          user: user.id
         }
       })
 
