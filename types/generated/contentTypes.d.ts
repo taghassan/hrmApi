@@ -1126,6 +1126,55 @@ export interface ApiDepartmentDepartment extends Schema.CollectionType {
   };
 }
 
+export interface ApiPermissionsRequestPermissionsRequest
+  extends Schema.CollectionType {
+  collectionName: 'permissions_requests';
+  info: {
+    singularName: 'permissions-request';
+    pluralName: 'permissions-requests';
+    displayName: 'Permissions Request';
+    description: '';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    type: Attribute.Enumeration<['official', 'medical', 'private', 'others']> &
+      Attribute.Required &
+      Attribute.DefaultTo<'official'>;
+    duration: Attribute.BigInteger &
+      Attribute.Required &
+      Attribute.DefaultTo<'0'>;
+    date: Attribute.Date & Attribute.Required;
+    from_time: Attribute.Time & Attribute.Required;
+    to_time: Attribute.Time & Attribute.Required;
+    reason: Attribute.Text;
+    status: Attribute.Enumeration<['pending', 'approved']> &
+      Attribute.DefaultTo<'pending'>;
+    user: Attribute.Relation<
+      'api::permissions-request.permissions-request',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    isStartOfDay: Attribute.Boolean & Attribute.DefaultTo<false>;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::permissions-request.permissions-request',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::permissions-request.permissions-request',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiRulesAndPolicieRulesAndPolicie
   extends Schema.CollectionType {
   collectionName: 'rules_and_policies';
@@ -1224,6 +1273,7 @@ declare module '@strapi/types' {
       'api::branch.branch': ApiBranchBranch;
       'api::day.day': ApiDayDay;
       'api::department.department': ApiDepartmentDepartment;
+      'api::permissions-request.permissions-request': ApiPermissionsRequestPermissionsRequest;
       'api::rules-and-policie.rules-and-policie': ApiRulesAndPolicieRulesAndPolicie;
       'api::shift.shift': ApiShiftShift;
     }

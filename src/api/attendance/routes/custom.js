@@ -90,7 +90,7 @@ module.exports= {
       },
       {
         method: 'GET',
-        path: '/permissions',
+        path: '/permissions-static',
         handler: 'permissions.getPermissions',
         config: {
           middlewares: ["api::attendance.auth"],
@@ -98,7 +98,7 @@ module.exports= {
       },
       {
         method: 'GET',
-        path: '/permissions/status',
+        path: '/permissions-static/status',
         handler: 'permissions.getPermissionStatus',
         config: {
           middlewares: ["api::attendance.auth"],

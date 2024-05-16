@@ -1,0 +1,64 @@
+{
+  "kind": "collectionType",
+  "collectionName": "permissions_requests",
+  "info": {
+    "singularName": "permissions-request",
+    "pluralName": "permissions-requests",
+    "displayName": "Permissions Request",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "type": {
+      "type": "enumeration",
+      "enum": [
+        "official",
+        "medical",
+        "private",
+        "others"
+      ],
+      "default": "official",
+      "required": true
+    },
+    "duration": {
+      "type": "biginteger",
+      "required": true,
+      "default": "0"
+    },
+    "date": {
+      "type": "date",
+      "required": true
+    },
+    "from_time": {
+      "type": "time",
+      "required": true
+    },
+    "to_time": {
+      "type": "time",
+      "required": true
+    },
+    "reason": {
+      "type": "text"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "pending",
+        "approved"
+      ],
+      "default": "pending"
+    },
+    "user": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "isStartOfDay": {
+      "type": "boolean",
+      "default": false
+    }
+  }
+}
